@@ -12,7 +12,7 @@
     <p class="text-stone-500 text-sm mt-1">Nomor invoice akan dibuat otomatis setelah pesanan disimpan.</p>
 </div>
 
-<form id="pesananForm" method="POST" action="{{ route('pesanan.store') }}" enctype="multipart/form-data" class="max-w-3xl">
+<form method="POST" action="{{ route('pesanan.store') }}" enctype="multipart/form-data" class="max-w-3xl">
     @csrf
 
     <div class="bg-white border border-stone-200 rounded-2xl p-6 space-y-5">
@@ -114,45 +114,4 @@
         <button type="submit" class="px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-semibold text-sm transition shadow-sm shadow-brand-500/20">Simpan Pesanan</button>
     </div>
 </form>
-
-<script>
-document.getElementById('pesananForm').addEventListener('submit', function(e) {
-    e.preventDefault(); // Stop form dari submit biasa
-
-    let formData = new FormData(this);
-
-    // Lakukan pengecekan ke server via AJAX
-    fetch('{{ route("pesanan.check-duplicate") }}', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json'
-        },
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.is_duplicate) {
-            // Jika duplikat, munculkan alert bawaan browser
-            let confirmSave = confirm('Data pesanan customer ' + data.nama_customer + ' sudah ada, apakah tetap disimpan?');
-            
-            if (confirmSave) {
-                // Jika klik OK, submit form asli (beserta file gambar)
-                this.submit();
-            } else {
-                // Jika klik Batal, redirect ke halaman data pesanan
-                window.location.href = '{{ route("pesanan.index") }}';
-            }
-        } else {
-            // Jika tidak duplikat, langsung submit form asli
-            this.submit();
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        // Fallback jika ajax error, tetap submit agar validasi Laravel memunculkan error merah jika ada field kosong
-        this.submit();
-    });
-});
-</script>
 @endsection
