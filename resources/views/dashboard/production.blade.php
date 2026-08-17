@@ -59,10 +59,10 @@
             <div class="px-5 py-3.5 flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-stone-900">{{ $bahan->nama }}</p>
-                    <p class="text-xs text-stone-400">Min. stok: {{ rtrim(rtrim($bahan->stok_minimum, '0'), '.') }} {{ $bahan->satuan }}</p>
+                    <p class="text-xs text-stone-400">Min. stok: {{ floatval($bahan->stok_minimum) }} {{ $bahan->satuan }}</p>
                 </div>
                 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20">
-                    {{ rtrim(rtrim($bahan->stok, '0'), '.') }} {{ $bahan->satuan }}
+                    {{ floatval($bahan->stok) }} {{ $bahan->satuan }}
                 </span>
             </div>
             @empty
