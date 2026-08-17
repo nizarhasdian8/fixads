@@ -69,7 +69,7 @@
                     @forelse($bahanKeluar as $item)
                     <tr class="hover:bg-stone-50">
                         <td class="px-5 py-3 text-stone-900 font-medium">{{ $item->bahanBaku->nama }}</td>
-                        <td class="px-5 py-3 text-stone-700">{{ rtrim(rtrim($item->jumlah_pakai, '0'), '.') }} {{ $item->bahanBaku->satuan }}</td>
+                        <td class="px-5 py-3 text-stone-700">{{ floatval($item->jumlah_pakai) }} {{ $item->bahanBaku->satuan }}</td>
                         <td class="px-5 py-3 text-stone-700">
                             <a href="{{ route('pesanan.show', $item->pesanan_id) }}" class="text-brand-600 hover:underline">{{ $item->pesanan->nomor_invoice }}</a>
                         </td>
@@ -104,7 +104,7 @@
                     <tr class="hover:bg-stone-50">
                         <td class="px-5 py-3 text-stone-900 font-medium">{{ $item->nomor_transaksi }}</td>
                         <td class="px-5 py-3 text-stone-700">{{ $item->bahanBaku->nama }}</td>
-                        <td class="px-5 py-3 text-stone-700">{{ $item->jumlah }} {{ $item->bahanBaku->satuan }}</td>
+                        <td class="px-5 py-3 text-stone-700">+{{ floatval($item->jumlah) }} {{ $item->bahanBaku->satuan }}</td>
                     </tr>
                     @empty
                     <tr>
