@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\File;
 
 class PesananController extends Controller
 {
@@ -109,7 +110,10 @@ class PesananController extends Controller
         ]);
 
         if ($request->hasFile('file_desain')) {
-            $data['file_desain'] = $request->file('file_desain')->store('desain-pesanan', 'public');
+            $file = $request->file('file_desain');
+            $filename = $file->hashName();
+            $file->move(public_path('desain-pesanan'), $filename); // Simpan langsung ke folder public
+            $data['file_desain'] = 'desain-pesanan/' . $filename;
         }
 
         $data['nomor_invoice'] = $this->generateNomorInvoice();
@@ -224,7 +228,10 @@ class PesananController extends Controller
     public function destroy(Pesanan $pesanan): RedirectResponse
     {
         if ($pesanan->file_desain) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($pesanan->file_desain);
+            $filePath = public_path($pesanan->file_desain);
+            if (File::exists($filePath)) {
+                File::delete($filePath);
+            }
         }
         $pesanan->pemakaianBahan()->delete();
         $pesanan->permintaanBahan()->delete();
