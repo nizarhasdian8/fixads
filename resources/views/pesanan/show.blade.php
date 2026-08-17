@@ -74,8 +74,8 @@
             @if($pesanan->file_desain)
             <div class="mt-5 pt-5 border-t border-stone-100">
                 <dt class="text-stone-400 text-sm mb-2">File Desain</dt>
-                <a href="{{ asset('storage/'.$pesanan->file_desain) }}" target="_blank" class="inline-block">
-                    <img src="{{ asset('storage/'.$pesanan->file_desain) }}" alt="Desain pesanan" class="max-w-xs rounded-xl border border-stone-200 hover:opacity-90 transition">
+                <a href="{{ asset($pesanan->file_desain) }}" target="_blank" class="inline-block">
+                    <img src="{{ asset($pesanan->file_desain) }}" alt="Desain pesanan" class="max-w-xs rounded-xl border border-stone-200 hover:opacity-90 transition">
                 </a>
             </div>
             @endif
@@ -124,10 +124,10 @@
                         <select :name="'bahan[' + index + '][bahan_baku_id]'" x-model="row.bahan_baku_id" class="flex-1 px-3 py-2 rounded-lg border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
                             <option value="">Pilih bahan...</option>
                             @foreach($bahanBakuList as $bahan)
-                            <option value="{{ $bahan->id }}">{{ $bahan->nama }} ({{ rtrim(rtrim($bahan->stok, '0'), '.') }} {{ $bahan->satuan }})</option>
+                            <option value="{{ $bahan->id }}">{{ $bahan->nama }} ({{ floatval($bahan->stok) }} {{ $bahan->satuan }})</option>
                             @endforeach
                         </select>
-                        <input type="number" step="0.01" min="0.01" :name="'bahan[' + index + '][jumlah_pakai]'" x-model="row.jumlah_pakai" placeholder="Jumlah" class="w-24 px-3 py-2 rounded-lg border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
+                        <input type="number" step="1" min="1" :name="'bahan[' + index + '][jumlah_pakai]'" x-model="row.jumlah_pakai" placeholder="Jumlah" class="w-24 px-3 py-2 rounded-lg border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
                         <button type="button" @click="rows.splice(index, 1)" class="px-2.5 text-stone-400 hover:text-red-600 transition" x-show="rows.length > 1">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
