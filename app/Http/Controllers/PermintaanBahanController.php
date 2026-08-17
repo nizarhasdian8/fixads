@@ -64,13 +64,13 @@ class PermintaanBahanController extends Controller
     {
         $data = $request->validate([
             'bahan_baku_id' => ['required', 'exists:bahan_baku,id'],
-            'jumlah' => ['required', 'numeric', 'min:0.01'],
+            'jumlah' => ['required', 'integer', 'min:1'], // Ubah ke integer (angka bulat)
             'catatan' => ['nullable', 'string'],
         ], [
             'bahan_baku_id.required' => 'Harap pilih bahan baku.',
             'jumlah.required' => 'Harap isi jumlah permintaan.',
-            'jumlah.numeric' => 'Jumlah harus berupa angka.',
-            'jumlah.min' => 'Jumlah minimal 0.01.',
+            'jumlah.integer' => 'Jumlah harus berupa angka bulat.',
+            'jumlah.min' => 'Jumlah minimal 1.',
         ]);
 
         $data['nomor_permintaan'] = $this->generateNomorPermintaan();

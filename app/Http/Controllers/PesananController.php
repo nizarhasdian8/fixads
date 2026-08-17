@@ -68,21 +68,6 @@ class PesananController extends Controller
         ]);
     }
 
-    public function checkDuplicate(Request $request)
-    {
-        $isDuplicate = Pesanan::where('nama_customer', $request->nama_customer)
-            ->where('produk_id', $request->produk_id)
-            ->where('ukuran', $request->ukuran)
-            ->where('jumlah', $request->jumlah)
-            ->where('spesifikasi', $request->spesifikasi)
-            ->exists();
-
-        return response()->json([
-            'is_duplicate' => $isDuplicate,
-            'nama_customer' => $request->nama_customer
-        ]);
-    }
-
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
@@ -178,7 +163,10 @@ class PesananController extends Controller
             'status' => ['required', 'in:queue,processing,completed,delayed'],
             'bahan' => ['nullable', 'array'],
             'bahan.*.bahan_baku_id' => ['nullable', 'exists:bahan_baku,id'],
-            'bahan.*.jumlah_pakai' => ['nullable', 'numeric', 'min:0.01'],
+            'bahan.*.jumlah_pakai' => ['nullable', 'integer', 'min:1'], // Ubah ke integer (angka bulat)
+        ], [
+            'bahan.*.jumlah_pakai.integer' => 'Jumlah pemakaian harus berupa angka bulat.',
+            'bahan.*.jumlah_pakai.min' => 'Jumlah pemakaian minimal 1.',
         ]);
 
         $barisBahan = collect($data['bahan'] ?? [])
@@ -197,7 +185,7 @@ class PesananController extends Controller
             }
         }
 
-                // 2. JIKA STOK KURANG, UBAH STATUS JADI TERTUNDA & KASIH PESAN ERROR
+        // 2. JIKA STOK KURANG, UBAH STATUS JADI TERTUNDA & KASIH PESAN ERROR
         if ($stokKurang) {
             $pesanan->update([
                 'kode_teknisi' => $data['kode_teknisi'],

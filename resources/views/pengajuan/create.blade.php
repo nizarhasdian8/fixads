@@ -32,7 +32,7 @@
 
             <div>
                 <label class="block text-sm font-medium text-stone-700 mb-1.5">Jumlah yang Diminta</label>
-                <input type="number" step="0.01" min="0.01" name="jumlah" value="{{ old('jumlah') }}"
+                <input type="number" step="1" min="1" name="jumlah" value="{{ old('jumlah') }}"
                     class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition @error('jumlah') border-red-400 @enderror">
                 @error('jumlah') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
             </div>
