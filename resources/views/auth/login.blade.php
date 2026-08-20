@@ -67,6 +67,11 @@
                     class="w-full bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white font-semibold text-sm py-2.5 rounded-xl transition shadow-sm shadow-brand-500/20">
                     Masuk
                 </button>
+
+                <button type="submit"
+                    class="w-full bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white font-semibold text-sm py-2.5 rounded-xl transition shadow-sm shadow-brand-500/20">
+                    Keluar
+                </button>
             </form>
         </div>
 
