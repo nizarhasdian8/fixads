@@ -25,8 +25,7 @@
     <table class="header-table">
         <tr>
             <td style="width: 30%; text-align: left;">
-                <img src="{{ public_path('assets/img/Logo Fix Advertising.png') }}" alt="Logo" style="width: 90px; height: auto;">
-            </td>
+                <img src="{{ public_path('assets/img/logo.png') }}" alt="Logo" style="width: 90px; height: auto;">
             <td style="width: 40%; text-align: center;">
                 <h2 style="margin: 0; font-size: 20px; font-weight: bold;">Fix Advertising</h2>
                 <p style="margin: 0; font-size: 11px; color: #555;">
