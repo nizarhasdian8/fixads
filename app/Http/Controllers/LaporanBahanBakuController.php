@@ -62,8 +62,8 @@ class LaporanBahanBakuController extends Controller
     
     public function bulanan(Request $request): View
     {
-        $bulan = $request->input('bulan', date('m'));
-        $tahun = $request->input('tahun', date('Y'));
+        $bulan = $request->input('bulan', now()->month);
+        $tahun = $request->input('tahun', now()->year);
 
         $namaBulan = [
             1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
@@ -86,11 +86,12 @@ class LaporanBahanBakuController extends Controller
         $totalKeluar = $bahanKeluar->count();
         $totalMasuk = $bahanMasuk->count();
 
-        // Ambil list tahun yang ada di database
-        $tahunOptions = PesananBahanBaku::selectRaw('YEAR(created_at) as year')
-            ->distinct()
-            ->orderBy('year', 'desc')
-            ->pluck('year');
+        // Ambil list tahun yang ada di database (dari Bahan Keluar & Bahan Masuk)
+        $tahunKeluar = PesananBahanBaku::selectRaw('YEAR(created_at) as year')->distinct()->pluck('year');
+        $tahunMasuk = BahanMasuk::selectRaw('YEAR(tanggal) as year')->distinct()->pluck('year');
+        
+        // Gabungkan tahun dari kedua tabel, lalu tambahkan tahun saat ini agar selalu ada di dropdown
+        $tahunOptions = $tahunKeluar->merge($tahunMasuk)->push(now()->year)->unique()->sortDesc();
 
         return view('laporan.bulanan', [
             'bulan' => $bulan,
@@ -106,8 +107,8 @@ class LaporanBahanBakuController extends Controller
 
     public function downloadPdfBulanan(Request $request)
     {
-        $bulan = $request->input('bulan', date('m'));
-        $tahun = $request->input('tahun', date('Y'));
+        $bulan = $request->input('bulan', now()->month);
+        $tahun = $request->input('tahun', now()->year);
 
         $namaBulan = [
             1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
