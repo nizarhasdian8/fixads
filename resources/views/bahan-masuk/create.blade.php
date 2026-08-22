@@ -12,7 +12,8 @@
     <p class="text-stone-500 text-sm mt-1">Nomor transaksi dibuat otomatis. Stok bahan baku akan bertambah setelah disimpan.</p>
 </div>
 
-<form method="POST" action="{{ route('bahan-masuk.store') }}" class="max-w-2xl">
+{{-- TAMBAHAN enctype="multipart/form-data" AGAR BISA UPLOAD GAMBAR --}}
+<form method="POST" action="{{ route('bahan-masuk.store') }}" enctype="multipart/form-data" class="max-w-2xl">
     @csrf
     <div class="bg-white border border-stone-200 rounded-2xl p-6 space-y-5">
         <div class="grid sm:grid-cols-2 gap-5">
@@ -23,7 +24,12 @@
                 @error('tanggal') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
             </div>
 
-            <div></div>
+            <div>
+                <label class="block text-sm font-medium text-stone-700 mb-1.5">Nama Supplier</label>
+                <input type="text" name="nama_supplier" value="{{ old('nama_supplier') }}" placeholder="cth. Toko Acrylic Jaya"
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition @error('nama_supplier') border-red-400 @enderror">
+                @error('nama_supplier') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+            </div>
 
             <div>
                 <label class="block text-sm font-medium text-stone-700 mb-1.5">Bahan Baku</label>
@@ -39,9 +45,20 @@
 
             <div>
                 <label class="block text-sm font-medium text-stone-700 mb-1.5">Jumlah</label>
-                <input type="number" step="0.01" min="0.01" name="jumlah" value="{{ old('jumlah') }}"
+                <input type="number" step="1" min="1" name="jumlah" value="{{ old('jumlah') }}"
                     class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition @error('jumlah') border-red-400 @enderror">
                 @error('jumlah') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            {{-- UPLOAD FOTO STRUK --}}
+            <div class="sm:col-span-2">
+                <label class="block text-sm font-medium text-stone-700 mb-1.5">Upload Foto Struk Pembelian</label>
+                <label for="foto_struk" class="flex items-center justify-center gap-3 border-2 border-dashed border-stone-300 rounded-xl px-4 py-6 cursor-pointer hover:border-brand-400 hover:bg-brand-50/30 transition">
+                    <svg class="w-6 h-6 text-stone-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                    <span class="text-sm text-stone-500"><span id="file-label">Klik untuk pilih foto struk</span> &middot; JPG, PNG maks 2MB</span>
+                </label>
+                <input id="foto_struk" type="file" name="foto_struk" accept="image/*" class="hidden" onchange="document.getElementById('file-label').textContent = this.files[0]?.name || 'Klik untuk pilih foto struk'">
+                @error('foto_struk') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
             </div>
         </div>
     </div>

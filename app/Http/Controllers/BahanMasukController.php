@@ -60,16 +60,30 @@ class BahanMasukController extends Controller
         $data = $request->validate([
             'tanggal' => ['required', 'date'],
             'bahan_baku_id' => ['required', 'exists:bahan_baku,id'],
-            'jumlah' => ['required', 'numeric', 'min:0.01'],
+            'jumlah' => ['required', 'integer', 'min:1'],
+            'nama_supplier' => ['required', 'string', 'max:100'],
+            'foto_struk' => ['required', 'image', 'max:2048'], // Wajib upload struk max 2MB
         ], [
             'tanggal.required' => 'Harap isi tanggal bahan masuk.',
             'bahan_baku_id.required' => 'Harap pilih bahan baku.',
             'jumlah.required' => 'Harap isi jumlah bahan masuk.',
-            'jumlah.numeric' => 'Jumlah harus berupa angka.',
-            'jumlah.min' => 'Jumlah minimal 0.01.',
+            'jumlah.integer' => 'Jumlah harus berupa angka bulat.',
+            'jumlah.min' => 'Jumlah minimal 1.',
+            'nama_supplier.required' => 'Harap isi nama supplier.',
+            'foto_struk.required' => 'Harap upload foto struk pembelian.',
+            'foto_struk.image' => 'File harus berupa gambar.',
+            'foto_struk.max' => 'Ukuran gambar maksimal 2MB.',
         ]);
 
         DB::transaction(function () use ($data, $request) {
+            // Simpan foto struk ke folder public/struk-supplier
+            if ($request->hasFile('foto_struk')) {
+                $file = $request->file('foto_struk');
+                $filename = $file->hashName();
+                $file->move(public_path('struk-supplier'), $filename);
+                $data['foto_struk'] = 'struk-supplier/' . $filename;
+            }
+
             $data['nomor_transaksi'] = $this->generateNomorTransaksi();
             $data['dicatat_oleh'] = $request->user()->id;
 
