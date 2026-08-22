@@ -66,7 +66,7 @@
 </div>
 
 <div class="grid lg:grid-cols-2 gap-6">
-    {{-- Tabel Bahan Keluar --}}
+    {{-- Tabel Bahan Keluar (HAPUS KOLOM PESANAN) --}}
     <div class="bg-white border border-stone-200 rounded-2xl overflow-hidden">
         <div class="p-5 border-b border-stone-100">
             <h2 class="font-semibold text-stone-900">Bahan Keluar</h2>
@@ -79,7 +79,6 @@
                         <th class="px-5 py-3 font-medium">Tanggal</th>
                         <th class="px-5 py-3 font-medium">Bahan Baku</th>
                         <th class="px-5 py-3 font-medium">Jumlah</th>
-                        <th class="px-5 py-3 font-medium">Pesanan</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-stone-100">
@@ -87,14 +86,11 @@
                     <tr class="hover:bg-stone-50">
                         <td class="px-5 py-3 text-stone-700">{{ \Carbon\Carbon::parse($item->created_at)->format('d M Y') }}</td>
                         <td class="px-5 py-3 text-stone-900 font-medium">{{ $item->bahanBaku->nama }}</td>
-                        <td class="px-5 py-3 text-stone-700">{{ rtrim(rtrim($item->jumlah_pakai, '0'), '.') }} {{ $item->bahanBaku->satuan }}</td>
-                        <td class="px-5 py-3 text-stone-700">
-                            <a href="{{ route('pesanan.show', $item->pesanan_id) }}" class="text-brand-600 hover:underline">{{ $item->pesanan->nomor_invoice }}</a>
-                        </td>
+                        <td class="px-5 py-3 text-stone-700">{{ floatval($item->jumlah_pakai) }} {{ $item->bahanBaku->satuan }}</td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="4" class="px-5 py-8 text-center text-stone-400">Tidak ada bahan keluar pada bulan ini.</td>
+                        <td colspan="3" class="px-5 py-8 text-center text-stone-400">Tidak ada bahan keluar pada bulan ini.</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -102,7 +98,7 @@
         </div>
     </div>
 
-    {{-- Tabel Bahan Masuk --}}
+    {{-- Tabel Bahan Masuk (TAMBAH KOLOM NAMA SUPPLIER) --}}
     <div class="bg-white border border-stone-200 rounded-2xl overflow-hidden">
         <div class="p-5 border-b border-stone-100">
             <h2 class="font-semibold text-stone-900">Bahan Masuk</h2>
@@ -116,6 +112,7 @@
                         <th class="px-5 py-3 font-medium">Kode Transaksi</th>
                         <th class="px-5 py-3 font-medium">Bahan Baku</th>
                         <th class="px-5 py-3 font-medium">Jumlah</th>
+                        <th class="px-5 py-3 font-medium">Supplier</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-stone-100">
@@ -124,11 +121,12 @@
                         <td class="px-5 py-3 text-stone-700">{{ \Carbon\Carbon::parse($item->tanggal)->format('d M Y') }}</td>
                         <td class="px-5 py-3 text-stone-900 font-medium">{{ $item->nomor_transaksi }}</td>
                         <td class="px-5 py-3 text-stone-700">{{ $item->bahanBaku->nama }}</td>
-                        <td class="px-5 py-3 text-stone-700">{{ $item->jumlah }} {{ $item->bahanBaku->satuan }}</td>
+                        <td class="px-5 py-3 text-stone-700">{{ floatval($item->jumlah) }} {{ $item->bahanBaku->satuan }}</td>
+                        <td class="px-5 py-3 text-stone-700">{{ $item->nama_supplier ?? '—' }}</td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="4" class="px-5 py-8 text-center text-stone-400">Tidak ada bahan masuk pada bulan ini.</td>
+                        <td colspan="5" class="px-5 py-8 text-center text-stone-400">Tidak ada bahan masuk pada bulan ini.</td>
                     </tr>
                     @endforelse
                 </tbody>
