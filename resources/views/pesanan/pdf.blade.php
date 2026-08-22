@@ -13,15 +13,36 @@
         th { background-color: #f5f5f5; font-weight: bold; }
         .text-center { text-align: center; }
         .text-right { text-align: right; }
-        .mt-20 { margin-top: 20px; }
+        .header-table { width: 100%; border: none; margin-bottom: 0; }
+        .header-table td { border: none; padding: 0; vertical-align: middle; }
+        .header-line { border-bottom: 3px solid #000; margin-top: 10px; margin-bottom: 20px; }
+        .signature-box { margin-top: 50px; width: 100%; text-align: right; }
+        .signature-space { height: 80px; }
     </style>
 </head>
 <body>
-    <h1>Fix Advertising</h1>
-    <h2>Laporan Data Pesanan
-        @if($bulan) <br> Bulan {{ $namaBulan[(int)$bulan] }} @endif
+    {{-- KOP SURAT --}}
+    <table class="header-table">
+        <tr>
+            <td style="width: 30%; text-align: left;">
+                <img src="{{ public_path('assets/img/Logo Fix Advertising.png') }}" alt="Logo" style="width: 90px; height: auto;">
+            </td>
+            <td style="width: 40%; text-align: center;">
+                <h2 style="margin: 0; font-size: 20px; font-weight: bold;">Fix Advertising</h2>
+                <p style="margin: 0; font-size: 11px; color: #555;">
+                    Ruko Cipta Pesona Jl. Raya Cipamokolan No. 12,<br>
+                    Cipamokolan, Kecamatan Rancasari, Kota Bandung, Jawa Barat
+                </p>
+            </td>
+            <td style="width: 30%;"></td>
+        </tr>
+    </table>
+    <div class="header-line"></div>
+
+    <h1>Laporan Data Pesanan</h1>
+    <h2>
+        @if($bulan) Bulan {{ $namaBulan[(int)$bulan] }} @endif
         @if($tahun) Tahun {{ $tahun }} @endif
-        @if($status) (Status: {{ ucfirst($status) }}) @endif
     </h2>
 
     <table>
@@ -57,8 +78,13 @@
         </tbody>
     </table>
 
-    <div class="mt-20">
-        <p>Dicetak pada: {{ date('d M Y, H:i') }}</p>
+    {{-- TANDA TANGAN --}}
+    <div class="signature-box">
+        <p>Bandung, {{ date('d M Y') }}</p>
+        <p>Hormat Kami,</p>
+        <div class="signature-space"></div>
+        <p style="text-decoration: underline; font-weight: bold;">(Nama CIO Marketing)</p>
+        <p>CIO Marketing</p>
     </div>
 </body>
 </html>
