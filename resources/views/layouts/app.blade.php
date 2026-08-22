@@ -96,10 +96,10 @@
                     Permintaan Bahan
                 </a>
 
-                {{-- MENU LAPORAN BULANAN BAHAN --}}
+                {{-- MENU LAPORAN BAHAN BAKU --}}
                 <a href="{{ route('laporan.bulanan') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {{ request()->routeIs('laporan.bulanan') ? 'bg-brand-50 text-brand-700' : 'text-stone-600 hover:bg-stone-100' }}">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                    Laporan Bulanan Bahan
+                    Laporan Bahan Baku
                 </a>
                 @endif
 

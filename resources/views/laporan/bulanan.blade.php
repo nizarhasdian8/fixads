@@ -5,7 +5,7 @@
 @section('content')
 <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
     <div>
-        <h1 class="text-2xl font-bold text-stone-900">Laporan Bulanan Bahan Baku</h1>
+        <h1 class="text-2xl font-bold text-stone-900">Laporan Bahan Baku</h1>
         <p class="text-stone-500 text-sm mt-1">Rekap data bahan baku yang masuk dan keluar per bulan.</p>
     </div>
     <a href="{{ route('laporan.bulanan.pdf', ['bulan' => $bulan, 'tahun' => $tahun]) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white font-semibold text-sm rounded-xl transition shadow-sm">
