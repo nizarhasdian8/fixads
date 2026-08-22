@@ -248,10 +248,10 @@ class PesananController extends Controller
         return "{$prefix}{$urutanBaru}";
     }
 
-    public function downloadPdf(Request $request)
+        public function downloadPdf(Request $request)
     {
-        $bulan = $request->input('bulan');
-        $tahun = $request->input('tahun');
+        $bulan = $request->input('bulan', now()->month);
+        $tahun = $request->input('tahun', now()->year);
         $status = $request->input('status');
         $search = $request->input('search');
 
