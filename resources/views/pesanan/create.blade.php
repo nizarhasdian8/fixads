@@ -67,12 +67,29 @@
                     <p class="text-xs text-amber-600 mt-1.5">Belum ada data produk. <a href="{{ route('produk.create') }}" class="underline font-medium">Tambah produk dulu</a>.</p>
                 @endif
             </div>
-            <div>
-                <label class="block text-sm font-medium text-stone-700 mb-1.5">Ukuran PxL</label>
-                <input type="text" name="ukuran" value="{{ old('ukuran') }}" placeholder="cth. 60 x 40 cm"
-                    class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition @error('ukuran') border-red-400 @enderror">
-                @error('ukuran') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+            
+            {{-- INPUT UKURAN DIPISAH JADI PANJANG LEBAR TINGGI --}}
+            <div class="sm:col-span-2">
+                <label class="block text-sm font-medium text-stone-700 mb-1.5">Ukuran (P x L x T)</label>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <input type="number" name="panjang" value="{{ old('panjang') }}" min="0" placeholder="Panjang"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition @error('panjang') border-red-400 @enderror">
+                        @error('panjang') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <input type="number" name="lebar" value="{{ old('lebar') }}" min="0" placeholder="Lebar"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition @error('lebar') border-red-400 @enderror">
+                        @error('lebar') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <input type="number" name="tinggi" value="{{ old('tinggi') }}" min="0" placeholder="Tinggi"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition @error('tinggi') border-red-400 @enderror">
+                        @error('tinggi') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
             </div>
+
             <div>
                 <label class="block text-sm font-medium text-stone-700 mb-1.5">Jumlah</label>
                 <input type="number" name="jumlah" value="{{ old('jumlah', 1) }}" min="1"

@@ -76,7 +76,9 @@ class PesananController extends Controller
             'nomor_hp' => ['required', 'string', 'min:11', 'max:15'],
             'sumber_pesanan' => ['required', 'string', 'max:100'],
             'produk_id' => ['required', 'exists:produk,id'],
-            'ukuran' => ['required', 'string', 'max:100'],
+            'panjang' => ['required', 'string', 'max:50'], // UBAH KE 3 INPUTAN
+            'lebar' => ['required', 'string', 'max:50'],   // UBAH KE 3 INPUTAN
+            'tinggi' => ['required', 'string', 'max:50'],  // UBAH KE 3 INPUTAN
             'jumlah' => ['required', 'integer', 'min:1'],
             'harga' => ['required', 'numeric', 'min:0'],
             'spesifikasi' => ['required', 'string'],
@@ -101,13 +103,19 @@ class PesananController extends Controller
             'nama_customer' => 'Nama Customer',
             'sumber_pesanan' => 'Sumber Pesanan',
             'produk_id' => 'Jenis Produk',
-            'ukuran' => 'Ukuran PxL',
+            'panjang' => 'Panjang',
+            'lebar' => 'Lebar',
+            'tinggi' => 'Tinggi',
             'jumlah' => 'Jumlah',
             'spesifikasi' => 'Spesifikasi',
             'file_desain' => 'File Desain',
             'deadline' => 'Deadline',
             'catatan' => 'Catatan',
         ]);
+
+        // GABUNGKAN PANJANG LEBAR TINGGI MENJADI 1 KOLOM UKURAN
+        $data['ukuran'] = $data['panjang'] . ' x ' . $data['lebar'] . ' x ' . $data['tinggi'];
+        unset($data['panjang'], $data['lebar'], $data['tinggi']); // Hapus inputan aslinya agar tidak error saat mass assignment
 
         if ($request->hasFile('file_desain')) {
             $file = $request->file('file_desain');
@@ -248,7 +256,7 @@ class PesananController extends Controller
         return "{$prefix}{$urutanBaru}";
     }
 
-        public function downloadPdf(Request $request)
+    public function downloadPdf(Request $request)
     {
         $bulan = $request->input('bulan', now()->month);
         $tahun = $request->input('tahun', now()->year);
