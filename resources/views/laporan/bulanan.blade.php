@@ -59,7 +59,7 @@
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 12h16M14 6l6 6-6 6" /></svg>
         </div>
         <div>
-            <p class="text-sm text-stone-500">Total Bahan Masuk (Penerimaan)</p>
+            <p class="text-sm text-stone-500">Total Bahan Masuk (Pembelian)</p>
             <p class="text-xl font-bold text-stone-900">{{ $totalMasuk }} Transaksi</p>
         </div>
     </div>
