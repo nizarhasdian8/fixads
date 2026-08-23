@@ -76,9 +76,9 @@ class PesananController extends Controller
             'nomor_hp' => ['required', 'string', 'min:11', 'max:15'],
             'sumber_pesanan' => ['required', 'string', 'max:100'],
             'produk_id' => ['required', 'exists:produk,id'],
-            'panjang' => ['required', 'string', 'max:50'], // UBAH KE 3 INPUTAN
-            'lebar' => ['required', 'string', 'max:50'],   // UBAH KE 3 INPUTAN
-            'tinggi' => ['required', 'string', 'max:50'],  // UBAH KE 3 INPUTAN
+            'panjang' => ['required', 'string', 'max:50'], 
+            'lebar' => ['required', 'string', 'max:50'],   
+            'tebal' => ['required', 'string', 'max:50'],  // UBAH DARI TINGGI KE TEBAL
             'jumlah' => ['required', 'integer', 'min:1'],
             'harga' => ['required', 'numeric', 'min:0'],
             'spesifikasi' => ['required', 'string'],
@@ -105,7 +105,7 @@ class PesananController extends Controller
             'produk_id' => 'Jenis Produk',
             'panjang' => 'Panjang',
             'lebar' => 'Lebar',
-            'tinggi' => 'Tinggi',
+            'tebal' => 'Tebal', // UBAH DARI TINGGI KE TEBAL
             'jumlah' => 'Jumlah',
             'spesifikasi' => 'Spesifikasi',
             'file_desain' => 'File Desain',
@@ -113,9 +113,9 @@ class PesananController extends Controller
             'catatan' => 'Catatan',
         ]);
 
-        // GABUNGKAN PANJANG LEBAR TINGGI MENJADI 1 KOLOM UKURAN
-        $data['ukuran'] = $data['panjang'] . ' x ' . $data['lebar'] . ' x ' . $data['tinggi'];
-        unset($data['panjang'], $data['lebar'], $data['tinggi']); // Hapus inputan aslinya agar tidak error saat mass assignment
+        // GABUNGKAN PANJANG LEBAR TEBAL MENJADI 1 KOLOM UKURAN
+        $data['ukuran'] = $data['panjang'] . ' x ' . $data['lebar'] . ' x ' . $data['tebal']; // UBAH TINGGI KE TEBAL
+        unset($data['panjang'], $data['lebar'], $data['tebal']); // UBAH TINGGI KE TEBAL
 
         if ($request->hasFile('file_desain')) {
             $file = $request->file('file_desain');
