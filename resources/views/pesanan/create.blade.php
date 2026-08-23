@@ -68,9 +68,9 @@
                 @endif
             </div>
             
-            {{-- INPUT UKURAN DIPISAH JADI PANJANG LEBAR TINGGI --}}
+            {{-- INPUT UKURAN DIPISAH JADI PANJANG LEBAR TEBAL --}}
             <div class="sm:col-span-2">
-                <label class="block text-sm font-medium text-stone-700 mb-1.5">Ukuran (P x L x T)</label>
+                <label class="block text-sm font-medium text-stone-700 mb-1.5">Ukuran (P x L x Tebal)</label>
                 <div class="grid grid-cols-3 gap-3">
                     <div>
                         <input type="number" name="panjang" value="{{ old('panjang') }}" min="0" placeholder="Panjang"
@@ -83,9 +83,9 @@
                         @error('lebar') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
-                        <input type="number" name="tinggi" value="{{ old('tinggi') }}" min="0" placeholder="Tinggi"
-                            class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition @error('tinggi') border-red-400 @enderror">
-                        @error('tinggi') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                        <input type="number" name="tebal" value="{{ old('tebal') }}" min="0" placeholder="Tebal"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition @error('tebal') border-red-400 @enderror">
+                        @error('tebal') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
             </div>
