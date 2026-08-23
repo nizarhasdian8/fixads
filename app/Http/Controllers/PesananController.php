@@ -78,13 +78,15 @@ class PesananController extends Controller
             'produk_id' => ['required', 'exists:produk,id'],
             'panjang' => ['required', 'string', 'max:50'], 
             'lebar' => ['required', 'string', 'max:50'],   
-            'tebal' => ['required', 'string', 'max:50'],  // UBAH DARI TINGGI KE TEBAL
+            'tebal' => ['required', 'string', 'max:50'],
             'jumlah' => ['required', 'integer', 'min:1'],
             'harga' => ['required', 'numeric', 'min:0'],
             'spesifikasi' => ['required', 'string'],
             'file_desain' => ['required', 'image', 'max:5120'],
             'deadline' => ['required', 'date', 'after_or_equal:today'],
             'catatan' => ['nullable', 'string'],
+            'status_pembayaran' => ['required', 'in:Belum Lunas,DP,Lunas'], // TAMBAHAN
+            'bukti_pembayaran' => ['nullable', 'image', 'max:2048'], // TAMBAHAN (opsional upload, max 2MB)
         ], [
             'nomor_hp.required' => 'Harap isi dengan benar.',
             'nomor_hp.min' => 'Harap isi dengan benar.',
@@ -105,17 +107,27 @@ class PesananController extends Controller
             'produk_id' => 'Jenis Produk',
             'panjang' => 'Panjang',
             'lebar' => 'Lebar',
-            'tebal' => 'Tebal', // UBAH DARI TINGGI KE TEBAL
+            'tebal' => 'Tebal',
             'jumlah' => 'Jumlah',
             'spesifikasi' => 'Spesifikasi',
             'file_desain' => 'File Desain',
             'deadline' => 'Deadline',
             'catatan' => 'Catatan',
+            'status_pembayaran' => 'Status Pembayaran',
+            'bukti_pembayaran' => 'Bukti Pembayaran',
         ]);
 
         // GABUNGKAN PANJANG LEBAR TEBAL MENJADI 1 KOLOM UKURAN
-        $data['ukuran'] = $data['panjang'] . ' x ' . $data['lebar'] . ' x ' . $data['tebal']; // UBAH TINGGI KE TEBAL
-        unset($data['panjang'], $data['lebar'], $data['tebal']); // UBAH TINGGI KE TEBAL
+        $data['ukuran'] = $data['panjang'] . ' x ' . $data['lebar'] . ' x ' . $data['tebal'];
+        unset($data['panjang'], $data['lebar'], $data['tebal']);
+
+        // UPLOAD BUKTI PEMBAYARAN (KWITANSI)
+        if ($request->hasFile('bukti_pembayaran')) {
+            $fileKwitansi = $request->file('bukti_pembayaran');
+            $filenameKwitansi = $fileKwitansi->hashName();
+            $fileKwitansi->move(public_path('kwitansi-pembayaran'), $filenameKwitansi);
+            $data['bukti_pembayaran'] = 'kwitansi-pembayaran/' . $filenameKwitansi;
+        }
 
         if ($request->hasFile('file_desain')) {
             $file = $request->file('file_desain');
@@ -239,6 +251,13 @@ class PesananController extends Controller
             $filePath = public_path($pesanan->file_desain);
             if (File::exists($filePath)) {
                 File::delete($filePath);
+            }
+        }
+        // Hapus juga bukti pembayaran jika ada
+        if ($pesanan->bukti_pembayaran) {
+            $filePathKwitansi = public_path($pesanan->bukti_pembayaran);
+            if (File::exists($filePathKwitansi)) {
+                File::delete($filePathKwitansi);
             }
         }
         $pesanan->pemakaianBahan()->delete();

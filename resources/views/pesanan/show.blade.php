@@ -44,7 +44,6 @@
                 <div class="sm:col-span-2">
                     <dt class="text-stone-400 mb-1">Ukuran</dt>
                     @php
-                        // Pecah teks "60 x 40 x 5" menjadi array ['60', '40', '5']
                         $ukuranParts = explode(' x ', $pesanan->ukuran);
                         $panjang = $ukuranParts[0] ?? '-';
                         $lebar = $ukuranParts[1] ?? '-';
@@ -68,6 +67,26 @@
                     <dt class="text-stone-400">Kode Teknisi</dt>
                     <dd class="text-stone-900 font-medium mt-0.5">{{ $pesanan->kode_teknisi ?? '—' }}</dd>
                 </div>
+                
+                {{-- TAMBAHAN: DATA PEMBAYARAN --}}
+                <div>
+                    <dt class="text-stone-400">Status Pembayaran</dt>
+                    <dd class="text-stone-900 font-medium mt-0.5">{{ $pesanan->status_pembayaran ?? 'Belum Lunas' }}</dd>
+                </div>
+                <div class="sm:col-span-2">
+                    <dt class="text-stone-400">Bukti Pembayaran / Kwitansi</dt>
+                    <dd class="text-stone-900 font-medium mt-0.5">
+                        @if($pesanan->bukti_pembayaran)
+                            <a href="{{ asset($pesanan->bukti_pembayaran) }}" target="_blank" class="inline-flex items-center gap-2 text-brand-600 hover:underline">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                                Lihat File Struk / Kwitansi
+                            </a>
+                        @else
+                            <span class="text-stone-500">Tidak ada bukti pembayaran diupload</span>
+                        @endif
+                    </dd>
+                </div>
+
                 @if($pesanan->spesifikasi)
                 <div class="sm:col-span-2">
                     <dt class="text-stone-400">Spesifikasi</dt>
@@ -127,7 +146,6 @@
                 </div>
                 <p class="text-xs text-stone-400 mb-3">Isi bahan baku yang dipakai untuk pesanan ini. Stok akan berkurang otomatis setelah disimpan.</p>
 
-                {{-- Tampilkan error jika stok kurang --}}
                 @error('bahan') <p class="text-xs text-red-600 mb-3">{{ $message }}</p> @enderror
 
                 <template x-for="(row, index) in rows" :key="index">
@@ -150,7 +168,6 @@
             </form>
         </div>
 
-        {{-- INFORMASI BOM (Bahan yang sudah dipakai) - DI BAWAH FORM UPDATE --}}
         @if($pesanan->pemakaianBahan->isNotEmpty())
         <div class="bg-white border border-stone-200 rounded-2xl p-6">
             <h2 class="font-semibold text-stone-900 mb-4">Informasi Pemakaian Bahan Baku</h2>
@@ -165,7 +182,6 @@
         </div>
         @endif
 
-        {{-- 2. LOCK STATUS: CIO PRODUCTION MELIHAT PESANAN SELESAI --}}
         @elseif(auth()->user()->isProduction() && $pesanan->status === 'completed')
         <div class="bg-white border border-stone-200 rounded-2xl p-6">
             <h2 class="font-semibold text-stone-900 mb-2">Update Produksi</h2>
@@ -174,7 +190,6 @@
             </div>
         </div>
         
-        {{-- INFORMASI BOM (Jika sudah selesai produksi, bahan tetap terlihat) --}}
         @if($pesanan->pemakaianBahan->isNotEmpty())
         <div class="bg-white border border-stone-200 rounded-2xl p-6">
             <h2 class="font-semibold text-stone-900 mb-4">Informasi Pemakaian Bahan Baku</h2>
@@ -189,7 +204,6 @@
         </div>
         @endif
 
-        {{-- 3. TOMBOL DITERIMA PELANGGAN (HANYA CIO MARKETING & STATUS SELESAI) --}}
         @elseif(auth()->user()->isMarketing() && $pesanan->status === 'completed')
         <div class="bg-white border border-stone-200 rounded-2xl p-6">
             <h2 class="font-semibold text-stone-900 mb-4">Update Status</h2>
@@ -209,7 +223,6 @@
             </form>
         </div>
 
-        {{-- 4. CIO MARKETING MELIHAT PESANAN MASIH PRODUKSI --}}
         @elseif(auth()->user()->isMarketing() && in_array($pesanan->status, ['queue', 'processing', 'delayed']))
         <div class="bg-white border border-stone-200 rounded-2xl p-6">
             <h2 class="font-semibold text-stone-900 mb-2">Update Status</h2>
@@ -225,7 +238,6 @@
         </div>
         @endif
 
-        {{-- Permintaan bahan terkait --}}
         @if($pesanan->permintaanBahan->isNotEmpty())
         <div class="bg-white border border-stone-200 rounded-2xl p-6">
             <h2 class="font-semibold text-stone-900 mb-4">Permintaan Bahan Terkait</h2>

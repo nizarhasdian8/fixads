@@ -68,7 +68,6 @@
                 @endif
             </div>
             
-            {{-- INPUT UKURAN DIPISAH JADI PANJANG LEBAR TEBAL --}}
             <div class="sm:col-span-2">
                 <label class="block text-sm font-medium text-stone-700 mb-1.5">Ukuran (P x L x Tebal)</label>
                 <div class="grid grid-cols-3 gap-3">
@@ -122,6 +121,34 @@
                 <textarea name="catatan" rows="2" placeholder="Catatan opsional dari customer..."
                     class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition @error('catatan') border-red-400 @enderror">{{ old('catatan') }}</textarea>
                 @error('catatan') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+            </div>
+        </div>
+    </div>
+
+    {{-- TAMBAHAN: DATA PEMBAYARAN --}}
+    <div class="bg-white border border-stone-200 rounded-2xl p-6 space-y-5 mt-6">
+        <h2 class="font-semibold text-stone-900 border-b border-stone-100 pb-3">Data Pembayaran</h2>
+        <div class="grid sm:grid-cols-2 gap-5">
+            <div>
+                <label class="block text-sm font-medium text-stone-700 mb-1.5">Status Pembayaran</label>
+                <select name="status_pembayaran"
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition @error('status_pembayaran') border-red-400 @enderror">
+                    <option value="" disabled selected>Pilih status pembayaran</option>
+                    @foreach(['Belum Lunas', 'DP', 'Lunas'] as $status)
+                        <option value="{{ $status }}" @selected(old('status_pembayaran') === $status)>{{ $status }}</option>
+                    @endforeach
+                </select>
+                @error('status_pembayaran') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+            </div>
+            <div></div> {{-- Spacer --}}
+            <div class="sm:col-span-2">
+                <label class="block text-sm font-medium text-stone-700 mb-1.5">Upload Bukti Pembayaran / Kwitansi (Opsional)</label>
+                <label for="bukti_pembayaran" class="flex items-center justify-center gap-3 border-2 border-dashed border-stone-300 rounded-xl px-4 py-6 cursor-pointer hover:border-brand-400 hover:bg-brand-50/30 transition">
+                    <svg class="w-6 h-6 text-stone-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    <span class="text-sm text-stone-500"><span id="kwitansi-label">Klik untuk pilih foto kwitansi</span> &middot; JPG, PNG maks 2MB</span>
+                </label>
+                <input id="bukti_pembayaran" type="file" name="bukti_pembayaran" accept="image/*" class="hidden" onchange="document.getElementById('kwitansi-label').textContent = this.files[0]?.name || 'Klik untuk pilih foto kwitansi'">
+                @error('bukti_pembayaran') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
             </div>
         </div>
     </div>
