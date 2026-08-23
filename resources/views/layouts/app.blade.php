@@ -76,6 +76,12 @@
                     Data Pesanan
                 </a>
 
+                {{-- MENU DATA TEKNSI (BISA DIAKSES KEDUA ROLE) --}}
+                <a href="{{ route('teknisi.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {{ request()->routeIs('teknisi.*') ? 'bg-brand-50 text-brand-700' : 'text-stone-600 hover:bg-stone-100' }}">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5a4 4 0 11-8 0 4 4 0 018 0zm6 3a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    Data Teknisi
+                </a>
+
                 @auth
                 @if(auth()->user()->isMarketing())
                 <a href="{{ route('produk.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition {{ request()->routeIs('produk.*') ? 'bg-brand-50 text-brand-700' : 'text-stone-600 hover:bg-stone-100' }}">

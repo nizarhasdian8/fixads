@@ -8,6 +8,7 @@ use App\Http\Controllers\LaporanBahanBakuController;
 use App\Http\Controllers\PermintaanBahanController;
 use App\Http\Controllers\PesananController;
 use App\Http\Controllers\ProdukController;
+use App\Http\Controllers\TeknisiController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route('login'));
@@ -97,4 +98,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/laporan-bulanan', [LaporanBahanBakuController::class, 'bulanan'])->name('laporan.bulanan');
         Route::get('/laporan-bulanan/pdf', [LaporanBahanBakuController::class, 'downloadPdfBulanan'])->name('laporan.bulanan.pdf');
     });
+
+    // ==================== DATA TEKNSI (CIO Marketing & CIO Production) ====================
+    Route::get('/teknisi', [TeknisiController::class, 'index'])->name('teknisi.index');
 });
