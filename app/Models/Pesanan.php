@@ -25,7 +25,10 @@ class Pesanan extends Model
         'catatan',
         'status',
         'kode_teknisi',
+        'teknisi_id', // TAMBAHAN UNTUK REVISI 4
         'created_by',
+        'status_pembayaran', // TAMBAHAN UNTUK REVISI 3
+        'bukti_pembayaran', // TAMBAHAN UNTUK REVISI 3
     ];
 
     protected function casts(): array
@@ -44,6 +47,12 @@ class Pesanan extends Model
     public function pembuat(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    // TAMBAHAN UNTUK REVISI 4: Relasi ke Teknisi
+    public function teknisi(): BelongsTo
+    {
+        return $this->belongsTo(Teknisi::class, 'teknisi_id');
     }
 
     public function pemakaianBahan(): HasMany
