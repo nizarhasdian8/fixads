@@ -41,9 +41,20 @@
                     <dt class="text-stone-400">Jenis Produk</dt>
                     <dd class="text-stone-900 font-medium mt-0.5">{{ $pesanan->produk->nama_produk }}</dd>
                 </div>
-                <div>
-                    <dt class="text-stone-400">Ukuran</dt>
-                    <dd class="text-stone-900 font-medium mt-0.5">{{ $pesanan->ukuran }}</dd>
+                <div class="sm:col-span-2">
+                    <dt class="text-stone-400 mb-1">Ukuran</dt>
+                    @php
+                        // Pecah teks "60 x 40 x 5" menjadi array ['60', '40', '5']
+                        $ukuranParts = explode(' x ', $pesanan->ukuran);
+                        $panjang = $ukuranParts[0] ?? '-';
+                        $lebar = $ukuranParts[1] ?? '-';
+                        $tebal = $ukuranParts[2] ?? '-';
+                    @endphp
+                    <dd class="text-stone-900 font-medium mt-0.5 flex flex-col gap-0.5">
+                        <span>Panjang : {{ $panjang }}</span>
+                        <span>Lebar : {{ $lebar }}</span>
+                        <span>Tebal : {{ $tebal }}</span>
+                    </dd>
                 </div>
                 <div>
                     <dt class="text-stone-400">Jumlah</dt>
