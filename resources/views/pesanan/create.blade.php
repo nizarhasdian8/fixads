@@ -142,7 +142,7 @@
             </div>
             <div></div> {{-- Spacer --}}
             <div class="sm:col-span-2">
-                <label class="block text-sm font-medium text-stone-700 mb-1.5">Upload Bukti Pembayaran / Kwitansi (Opsional)</label>
+                <label class="block text-sm font-medium text-stone-700 mb-1.5">Upload Bukti Pembayaran / Kwitansi</label>
                 <label for="bukti_pembayaran" class="flex items-center justify-center gap-3 border-2 border-dashed border-stone-300 rounded-xl px-4 py-6 cursor-pointer hover:border-brand-400 hover:bg-brand-50/30 transition">
                     <svg class="w-6 h-6 text-stone-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                     <span class="text-sm text-stone-500"><span id="kwitansi-label">Klik untuk pilih foto kwitansi</span> &middot; JPG, PNG maks 2MB</span>
