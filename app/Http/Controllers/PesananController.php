@@ -85,14 +85,15 @@ class PesananController extends Controller
             'file_desain' => ['required', 'image', 'max:5120'],
             'deadline' => ['required', 'date', 'after_or_equal:today'],
             'catatan' => ['nullable', 'string'],
-            'status_pembayaran' => ['required', 'in:Belum Lunas,DP,Lunas'], // TAMBAHAN
-            'bukti_pembayaran' => ['nullable', 'image', 'max:2048'], // TAMBAHAN (opsional upload, max 2MB)
+            'status_pembayaran' => ['required', 'in:Belum Lunas,DP,Lunas'], 
+            'bukti_pembayaran' => ['required', 'image', 'max:2048'], // UBAH MENJADI REQUIRED (WAJIB)
         ], [
             'nomor_hp.required' => 'Harap isi dengan benar.',
             'nomor_hp.min' => 'Harap isi dengan benar.',
             'nomor_hp.max' => 'Harap isi dengan benar.',
             'harga.required' => 'Harap isi dengan benar.',
             'harga.numeric' => 'Harap isi dengan benar.',
+            'bukti_pembayaran.required' => 'Harap upload bukti pembayaran.', // TAMBAHAN PESAN ERROR KHUSUS
             'required' => 'Kolom :attribute wajib diisi.',
             'min' => 'Kolom :attribute minimal harus :min karakter.',
             'max' => 'Kolom :attribute maksimal harus :max karakter.',
@@ -132,7 +133,7 @@ class PesananController extends Controller
         if ($request->hasFile('file_desain')) {
             $file = $request->file('file_desain');
             $filename = $file->hashName();
-            $file->move(public_path('desain-pesanan'), $filename); // Simpan langsung ke folder public
+            $file->move(public_path('desain-pesanan'), $filename);
             $data['file_desain'] = 'desain-pesanan/' . $filename;
         }
 
@@ -187,7 +188,7 @@ class PesananController extends Controller
             'status' => ['required', 'in:queue,processing,completed,delayed'],
             'bahan' => ['nullable', 'array'],
             'bahan.*.bahan_baku_id' => ['nullable', 'exists:bahan_baku,id'],
-            'bahan.*.jumlah_pakai' => ['nullable', 'integer', 'min:1'], // Ubah ke integer (angka bulat)
+            'bahan.*.jumlah_pakai' => ['nullable', 'integer', 'min:1'], 
         ], [
             'bahan.*.jumlah_pakai.integer' => 'Jumlah pemakaian harus berupa angka bulat.',
             'bahan.*.jumlah_pakai.min' => 'Jumlah pemakaian minimal 1.',
@@ -205,7 +206,7 @@ class PesananController extends Controller
             if ($bahanBaku && $bahanBaku->stok < $baris['jumlah_pakai']) {
                 $stokKurang = true;
                 $namaBahanKurang = $bahanBaku->nama;
-                break; // Berhenti di bahan pertama yang kurang
+                break; 
             }
         }
 
