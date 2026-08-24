@@ -9,16 +9,18 @@
         Kembali
     </a>
     
-    {{-- TAMBAHAN TOMBOL CETAK STRUK --}}
+    {{-- TOMBOL CETAK STRUK (HANYA CIO MARKETING) --}}
     <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-3">
             <h1 class="text-2xl font-bold text-stone-900">{{ $pesanan->nomor_invoice }}</h1>
             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ring-1 ring-inset {{ $pesanan->statusBadgeClass() }}">{{ $pesanan->statusLabel() }}</span>
         </div>
+        @if(auth()->user()->isMarketing())
         <a href="{{ route('pesanan.struk', $pesanan) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-stone-800 hover:bg-stone-700 text-white font-semibold text-sm rounded-xl transition shadow-sm">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
             Cetak Struk
         </a>
+        @endif
     </div>
     <p class="text-stone-500 text-sm mt-1">Dibuat oleh {{ $pesanan->pembuat->name }} &middot; {{ $pesanan->created_at->format('d M Y, H:i') }}</p>
 </div>
@@ -76,7 +78,8 @@
                     <dd class="text-stone-900 font-medium mt-0.5">{{ $pesanan->teknisi->nama ?? '—' }}</dd>
                 </div>
                 
-                {{-- TAMBAHAN: DATA PEMBAYARAN --}}
+                {{-- DATA PEMBAYARAN (HANYA CIO MARKETING) --}}
+                @if(auth()->user()->isMarketing())
                 <div>
                     <dt class="text-stone-400">Status Pembayaran</dt>
                     <dd class="text-stone-900 font-medium mt-0.5">{{ $pesanan->status_pembayaran ?? 'Belum Lunas' }}</dd>
@@ -98,6 +101,7 @@
                         @endif
                     </dd>
                 </div>
+                @endif
 
                 @if($pesanan->spesifikasi)
                 <div class="sm:col-span-2">
