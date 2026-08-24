@@ -6,7 +6,7 @@
     <title>Struk Pesanan</title>
     <style>
         body {
-            font-family: monospace; /* Font khas struk kasir */
+            font-family: monospace;
             font-size: 12px;
             color: #000;
             margin: 0;
@@ -28,7 +28,7 @@
             vertical-align: top;
         }
         .logo-img {
-            width: 60px;
+            width: 120px; /* LOGO DIPERBESAR */
             height: auto;
             display: block;
             margin: 0 auto 5px auto;
@@ -88,33 +88,29 @@
 
     {{-- DETAIL HARGA & PEMBAYARAN --}}
     @php
-        $total = $pesanan->harga;
-        $bayar = $pesanan->nominal_pembayaran ?? 0;
-        $sisa = $total - $bayar;
+        // LOGIKA MATEMATIKA
+        $hargaProduk = $pesanan->harga; // Harga satuan
+        $totalHarga = $hargaProduk * $pesanan->jumlah; // Total Harga = Harga Produk x Jumlah
+        $bayar = $pesanan->nominal_pembayaran ?? 0; // Uang yang sudah dibayar
+        $sisa = $totalHarga - $bayar; // Sisa bayar
     @endphp
     <table>
         <tr>
             <td>Harga Produk</td>
-            <td class="text-right">Rp {{ number_format($total, 0, ',', '.') }}</td>
+            <td class="text-right">Rp {{ number_format($hargaProduk, 0, ',', '.') }}</td>
         </tr>
         <tr>
-            <td>Total Bayar</td>
-            <td class="text-right" style="font-weight: bold;">Rp {{ number_format($total, 0, ',', '.') }}</td>
+            <td>Total Harga</td>
+            <td class="text-right" style="font-weight: bold;">Rp {{ number_format($totalHarga, 0, ',', '.') }}</td>
         </tr>
-        
-        @if($pesanan->status_pembayaran === 'DP')
-        <tr>
-            <td>Bayar (DP)</td>
-            <td class="text-right">Rp {{ number_format($bayar, 0, ',', '.') }}</td>
-        </tr>
-        <tr>
-            <td>Sisa Bayar</td>
-            <td class="text-right" style="font-weight: bold;">Rp {{ number_format($sisa, 0, ',', '.') }}</td>
-        </tr>
-        @elseif($pesanan->status_pembayaran === 'Lunas')
         <tr>
             <td>Bayar</td>
             <td class="text-right">Rp {{ number_format($bayar, 0, ',', '.') }}</td>
+        </tr>
+        @if($sisa > 0)
+        <tr>
+            <td>Sisa</td>
+            <td class="text-right" style="font-weight: bold;">Rp {{ number_format($sisa, 0, ',', '.') }}</td>
         </tr>
         @endif
     </table>

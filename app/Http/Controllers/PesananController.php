@@ -330,7 +330,7 @@ class PesananController extends Controller
 
         // Ukuran kertas thermal kecil (lebar 72mm = 204 point, tinggi auto)
         $pdf = Pdf::loadView('pesanan.struk', compact('pesanan'))
-            ->setPaper([0, 0, 204, 650]); 
+            ->setPaper([0, 0, 204, 350]); 
 
         return $pdf->stream('struk-' . $pesanan->nomor_invoice . '.pdf');
     }
