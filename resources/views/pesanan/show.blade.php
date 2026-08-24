@@ -155,17 +155,54 @@
                     <label class="block text-sm font-medium text-stone-700 mb-1.5">Status Pesanan</label>
                     <select name="status" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
                         @foreach($statusOptions as $value => $label)
-                        @if(in_array($value, ['queue', 'processing', 'delayed', 'completed']))
-                        <option value="{{ $value }}" @selected($pesanan->status === $value) @disabled(in_array($pesanan->status, ['processing', 'delayed']) && $value === 'queue')>{{ $label }}</option>
-                        @endif
+                            @if(in_array($value, ['queue', 'processing', 'delayed', 'completed']))
+                                @php
+                                    // LOGIKA DISABLE DROPDOWN STATUS
+                                    $isDisabled = false;
+                                    if ($value === $pesanan->status) {
+                                        $isDisabled = true;
+                                    } elseif ($pesanan->status === 'queue' && $value === 'completed') {
+                                        $isDisabled = true;
+                                    } elseif (in_array($pesanan->status, ['processing', 'delayed']) && $value === 'queue') {
+                                        $isDisabled = true;
+                                    }
+                                @endphp
+                                <option value="{{ $value }}" @selected($pesanan->status === $value) @disabled($isDisabled)>{{ $label }}</option>
+                            @endif
                         @endforeach
                     </select>
                 </div>
 
-                {{-- TAMBAHAN UNTUK REVISI 6: CHECKBOX QC --}}
-                <div class="mb-5 flex items-center gap-2">
-                    <input type="checkbox" name="qc_status" id="qc_status" value="1" class="rounded border-stone-300 text-brand-600 focus:ring-brand-500" @checked(old('qc_status', $pesanan->qc_status))>
-                    <label for="qc_status" class="text-sm font-medium text-stone-700">Quality Control (QC) Passed</label>
+                {{-- TAMBAHAN UNTUK REVISI 6: 4 CHECKBOX QC --}}
+                @php
+                    // QC hanya bisa dicentang jika status saat ini adalah "Diproses"
+                    $qcDisabled = ($pesanan->status !== 'processing');
+                @endphp
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-stone-700 mb-2">Quality Control (QC)</label>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" name="qc_desain" id="qc_desain" value="1" class="rounded border-stone-300 text-brand-600 focus:ring-brand-500" @checked(old('qc_desain', $pesanan->qc_desain)) @disabled($qcDisabled)>
+                            <label for="qc_desain" class="text-sm text-stone-700">QC Desain & Ukuran</label>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" name="qc_konstruksi" id="qc_konstruksi" value="1" class="rounded border-stone-300 text-brand-600 focus:ring-brand-500" @checked(old('qc_konstruksi', $pesanan->qc_konstruksi)) @disabled($qcDisabled)>
+                            <label for="qc_konstruksi" class="text-sm text-stone-700">QC Pengerjaan/Konstruksi</label>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" name="qc_kelistrikan" id="qc_kelistrikan" value="1" class="rounded border-stone-300 text-brand-600 focus:ring-brand-500" @checked(old('qc_kelistrikan', $pesanan->qc_kelistrikan)) @disabled($qcDisabled)>
+                            <label for="qc_kelistrikan" class="text-sm text-stone-700">QC Kelistrikan</label>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" name="qc_ketahanan" id="qc_ketahanan" value="1" class="rounded border-stone-300 text-brand-600 focus:ring-brand-500" @checked(old('qc_ketahanan', $pesanan->qc_ketahanan)) @disabled($qcDisabled)>
+                            <label for="qc_ketahanan" class="text-sm text-stone-700">QC Ketahanan/Outdoor</label>
+                        </div>
+                    </div>
+                    @if($qcDisabled)
+                        <p class="text-xs text-amber-600 mt-2">QC hanya bisa dicentang saat status pesanan "Diproses".</p>
+                    @else
+                        <p class="text-xs text-stone-400 mt-2">Semua checklist wajib dicentang sebelum status diubah menjadi "Selesai Produksi".</p>
+                    @endif
                 </div>
 
                 <div class="mb-2 flex items-center justify-between">
@@ -212,8 +249,31 @@
         @elseif(auth()->user()->isProduction() && $pesanan->status === 'completed')
         <div class="bg-white border border-stone-200 rounded-2xl p-6">
             <h2 class="font-semibold text-stone-900 mb-2">Update Produksi</h2>
-            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
                 <p class="text-sm text-gray-600">Status pesanan sudah <span class="font-semibold">Selesai Produksi</span>. Menunggu CIO Marketing untuk mengubah status menjadi Diterima Pelanggan.</p>
+            </div>
+            
+            {{-- TAMPILKAN QC SAAT SUDAH SELESAI (READ ONLY) --}}
+            <div class="mt-4">
+                <label class="block text-sm font-medium text-stone-700 mb-2">Quality Control (QC) Result</label>
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" disabled @checked($pesanan->qc_desain) class="rounded border-stone-300 text-brand-600">
+                        <span class="text-sm text-stone-700">QC Desain & Ukuran</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" disabled @checked($pesanan->qc_konstruksi) class="rounded border-stone-300 text-brand-600">
+                        <span class="text-sm text-stone-700">QC Pengerjaan/Konstruksi</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" disabled @checked($pesanan->qc_kelistrikan) class="rounded border-stone-300 text-brand-600">
+                        <span class="text-sm text-stone-700">QC Kelistrikan</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" disabled @checked($pesanan->qc_ketahanan) class="rounded border-stone-300 text-brand-600">
+                        <span class="text-sm text-stone-700">QC Ketahanan/Outdoor</span>
+                    </div>
+                </div>
             </div>
         </div>
         

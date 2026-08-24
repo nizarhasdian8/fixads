@@ -193,7 +193,10 @@ class PesananController extends Controller
         $data = $request->validate([
             'teknisi_id' => ['required', 'exists:teknisi,id'],
             'status' => ['required', 'in:queue,processing,completed,delayed'],
-            'qc_status' => ['nullable', 'boolean'], // TAMBAHAN UNTUK REVISI 6
+            'qc_desain' => ['nullable', 'boolean'], // TAMBAHAN QC BARU
+            'qc_konstruksi' => ['nullable', 'boolean'], // TAMBAHAN QC BARU
+            'qc_kelistrikan' => ['nullable', 'boolean'], // TAMBAHAN QC BARU
+            'qc_ketahanan' => ['nullable', 'boolean'], // TAMBAHAN QC BARU
             'bahan' => ['nullable', 'array'],
             'bahan.*.bahan_baku_id' => ['nullable', 'exists:bahan_baku,id'],
             'bahan.*.jumlah_pakai' => ['nullable', 'integer', 'min:1'], 
@@ -202,12 +205,15 @@ class PesananController extends Controller
             'bahan.*.jumlah_pakai.min' => 'Jumlah pemakaian minimal 1.',
         ]);
 
-        // Konversi checkbox QC ke boolean (true/false)
-        $data['qc_status'] = $request->boolean('qc_status');
+        // Konversi 4 checkbox QC ke boolean (true/false)
+        $data['qc_desain'] = $request->boolean('qc_desain');
+        $data['qc_konstruksi'] = $request->boolean('qc_konstruksi');
+        $data['qc_kelistrikan'] = $request->boolean('qc_kelistrikan');
+        $data['qc_ketahanan'] = $request->boolean('qc_ketahanan');
 
-        // CEK QC: Jika ingin ubah ke "Selesai Produksi", QC wajib dicentang
-        if ($newStatus === 'completed' && !$data['qc_status']) {
-            return back()->with('error', 'Harap centang "Quality Control (QC) Passed" sebelum mengubah status menjadi Selesai Produksi.')->withInput();
+        // CEK QC: Jika ingin ubah ke "Selesai Produksi", ke-4 QC wajib dicentang semua
+        if ($newStatus === 'completed' && (!$data['qc_desain'] || !$data['qc_konstruksi'] || !$data['qc_kelistrikan'] || !$data['qc_ketahanan'])) {
+            return back()->with('error', 'Harap centang semua checklist "Quality Control (QC)" sebelum mengubah status menjadi Selesai Produksi.')->withInput();
         }
 
         $barisBahan = collect($data['bahan'] ?? [])
@@ -230,7 +236,10 @@ class PesananController extends Controller
         if ($stokKurang) {
             $pesanan->update([
                 'teknisi_id' => $data['teknisi_id'],
-                'qc_status' => $data['qc_status'], // Simpan juga QC statusnya
+                'qc_desain' => $data['qc_desain'], // Simpan QC statusnya
+                'qc_konstruksi' => $data['qc_konstruksi'], // Simpan QC statusnya
+                'qc_kelistrikan' => $data['qc_kelistrikan'], // Simpan QC statusnya
+                'qc_ketahanan' => $data['qc_ketahanan'], // Simpan QC statusnya
                 'status' => 'delayed',
             ]);
 
@@ -241,7 +250,10 @@ class PesananController extends Controller
         DB::transaction(function () use ($data, $pesanan, $barisBahan) {
             $pesanan->update([
                 'teknisi_id' => $data['teknisi_id'],
-                'qc_status' => $data['qc_status'], // Simpan QC status
+                'qc_desain' => $data['qc_desain'], // Simpan QC statusnya
+                'qc_konstruksi' => $data['qc_konstruksi'], // Simpan QC statusnya
+                'qc_kelistrikan' => $data['qc_kelistrikan'], // Simpan QC statusnya
+                'qc_ketahanan' => $data['qc_ketahanan'], // Simpan QC statusnya
                 'status' => $data['status'],
             ]);
 

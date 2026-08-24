@@ -26,7 +26,10 @@ class Pesanan extends Model
         'status',
         'kode_teknisi',
         'teknisi_id', 
-        'qc_status', // TAMBAHAN UNTUK REVISI 6
+        'qc_desain', // TAMBAHAN QC BARU
+        'qc_konstruksi', // TAMBAHAN QC BARU
+        'qc_kelistrikan', // TAMBAHAN QC BARU
+        'qc_ketahanan', // TAMBAHAN QC BARU
         'created_by',
         'status_pembayaran', 
         'bukti_pembayaran',
@@ -39,7 +42,10 @@ class Pesanan extends Model
             'deadline' => 'date',
             'harga' => 'decimal:2',
             'nominal_pembayaran' => 'decimal:2',
-            'qc_status' => 'boolean', // TAMBAHAN UNTUK REVISI 6
+            'qc_desain' => 'boolean', // TAMBAHAN QC BARU
+            'qc_konstruksi' => 'boolean', // TAMBAHAN QC BARU
+            'qc_kelistrikan' => 'boolean', // TAMBAHAN QC BARU
+            'qc_ketahanan' => 'boolean', // TAMBAHAN QC BARU
         ];
     }
 
