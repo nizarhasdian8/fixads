@@ -45,6 +45,9 @@ Route::middleware('auth')->group(function () {
     // Route dengan parameter {pesanan} HARUS didaftarkan setelah /pesanan/create, /pesanan/pdf, dll.
     Route::get('/pesanan/{pesanan}', [PesananController::class, 'show'])->name('pesanan.show');
 
+    // TAMBAHAN UNTUK REVISI 5: Route Cetak Struk
+    Route::get('/pesanan/{pesanan}/struk', [PesananController::class, 'downloadStruk'])->name('pesanan.struk');
+
     // Update status bisa diakses CIO Production (Update Produksi) & CIO Marketing (Diterima Pelanggan)
     Route::put('/pesanan/{pesanan}/status', [PesananController::class, 'updateStatus'])
         ->middleware('role:cio_marketing,cio_production')

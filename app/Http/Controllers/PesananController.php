@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BahanBaku;
 use App\Models\Pesanan;
 use App\Models\Produk;
+use App\Models\Teknisi;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -86,14 +87,15 @@ class PesananController extends Controller
             'deadline' => ['required', 'date', 'after_or_equal:today'],
             'catatan' => ['nullable', 'string'],
             'status_pembayaran' => ['required', 'in:Belum Lunas,DP,Lunas'], 
-            'bukti_pembayaran' => ['required', 'image', 'max:2048'], // UBAH MENJADI REQUIRED (WAJIB)
+            'bukti_pembayaran' => ['required', 'image', 'max:2048'], 
+            'nominal_pembayaran' => ['nullable', 'numeric', 'min:0'], // TAMBAHAN UNTUK REVISI 5
         ], [
             'nomor_hp.required' => 'Harap isi dengan benar.',
             'nomor_hp.min' => 'Harap isi dengan benar.',
             'nomor_hp.max' => 'Harap isi dengan benar.',
             'harga.required' => 'Harap isi dengan benar.',
             'harga.numeric' => 'Harap isi dengan benar.',
-            'bukti_pembayaran.required' => 'Harap upload bukti pembayaran.', // TAMBAHAN PESAN ERROR KHUSUS
+            'bukti_pembayaran.required' => 'Harap upload bukti pembayaran.', 
             'required' => 'Kolom :attribute wajib diisi.',
             'min' => 'Kolom :attribute minimal harus :min karakter.',
             'max' => 'Kolom :attribute maksimal harus :max karakter.',
@@ -116,6 +118,7 @@ class PesananController extends Controller
             'catatan' => 'Catatan',
             'status_pembayaran' => 'Status Pembayaran',
             'bukti_pembayaran' => 'Bukti Pembayaran',
+            'nominal_pembayaran' => 'Nominal Pembayaran', // TAMBAHAN UNTUK REVISI 5
         ]);
 
         // GABUNGKAN PANJANG LEBAR TEBAL MENJADI 1 KOLOM UKURAN
@@ -137,6 +140,11 @@ class PesananController extends Controller
             $data['file_desain'] = 'desain-pesanan/' . $filename;
         }
 
+        // Jika status Belum Lunas, pastikan nominal pembayaran 0
+        if ($data['status_pembayaran'] === 'Belum Lunas') {
+            $data['nominal_pembayaran'] = 0;
+        }
+
         $data['nomor_invoice'] = $this->generateNomorInvoice();
         $data['status'] = 'queue';
         $data['created_by'] = $request->user()->id;
@@ -148,12 +156,13 @@ class PesananController extends Controller
 
     public function show(Pesanan $pesanan): View
     {
-        $pesanan->load(['produk', 'pembuat', 'pemakaianBahan.bahanBaku', 'permintaanBahan.bahanBaku']);
+        $pesanan->load(['produk', 'pembuat', 'pemakaianBahan.bahanBaku', 'permintaanBahan.bahanBaku', 'teknisi']);
 
         return view('pesanan.show', [
             'pesanan' => $pesanan,
             'bahanBakuList' => BahanBaku::orderBy('nama')->get(),
             'statusOptions' => Pesanan::statusOptions(),
+            'teknisiList' => Teknisi::orderBy('nama')->get(), // TAMBAHAN UNTUK DROPDOWN TEKNISI
         ]);
     }
 
@@ -184,7 +193,7 @@ class PesananController extends Controller
         }
 
         $data = $request->validate([
-            'kode_teknisi' => ['required', 'string', 'max:50'],
+            'teknisi_id' => ['required', 'exists:teknisi,id'], // UBAH DARI KODE TEKNISI KE ID TEKNISI
             'status' => ['required', 'in:queue,processing,completed,delayed'],
             'bahan' => ['nullable', 'array'],
             'bahan.*.bahan_baku_id' => ['nullable', 'exists:bahan_baku,id'],
@@ -213,7 +222,7 @@ class PesananController extends Controller
         // 2. JIKA STOK KURANG, UBAH STATUS JADI TERTUNDA & KASIH PESAN ERROR
         if ($stokKurang) {
             $pesanan->update([
-                'kode_teknisi' => $data['kode_teknisi'],
+                'teknisi_id' => $data['teknisi_id'],
                 'status' => 'delayed',
             ]);
 
@@ -223,7 +232,7 @@ class PesananController extends Controller
         // 3. JIKA STOK AMAN, PROSES UPDATE STATUS & KURANGI STOK
         DB::transaction(function () use ($data, $pesanan, $barisBahan) {
             $pesanan->update([
-                'kode_teknisi' => $data['kode_teknisi'],
+                'teknisi_id' => $data['teknisi_id'],
                 'status' => $data['status'],
             ]);
 
@@ -312,5 +321,17 @@ class PesananController extends Controller
         $namaFile = 'laporan-pesanan-' . ($bulan ? $namaBulan[(int)$bulan] : 'semua') . '-' . ($tahun ?: 'tahun') . '.pdf';
         
         return $pdf->download($namaFile);
+    }
+
+    // TAMBAHAN UNTUK REVISI 5: Cetak Struk PDF
+    public function downloadStruk(Pesanan $pesanan)
+    {
+        $pesanan->load(['produk', 'teknisi']);
+
+        // Ukuran kertas thermal kecil (lebar 72mm = 204 point, tinggi auto)
+        $pdf = Pdf::loadView('pesanan.struk', compact('pesanan'))
+            ->setPaper([0, 0, 204, 650]); 
+
+        return $pdf->stream('struk-' . $pesanan->nomor_invoice . '.pdf');
     }
 }

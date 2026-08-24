@@ -8,9 +8,17 @@
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
         Kembali
     </a>
-    <div class="flex flex-wrap items-center gap-3">
-        <h1 class="text-2xl font-bold text-stone-900">{{ $pesanan->nomor_invoice }}</h1>
-        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ring-1 ring-inset {{ $pesanan->statusBadgeClass() }}">{{ $pesanan->statusLabel() }}</span>
+    
+    {{-- TAMBAHAN TOMBOL CETAK STRUK --}}
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-3">
+            <h1 class="text-2xl font-bold text-stone-900">{{ $pesanan->nomor_invoice }}</h1>
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ring-1 ring-inset {{ $pesanan->statusBadgeClass() }}">{{ $pesanan->statusLabel() }}</span>
+        </div>
+        <a href="{{ route('pesanan.struk', $pesanan) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-stone-800 hover:bg-stone-700 text-white font-semibold text-sm rounded-xl transition shadow-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+            Cetak Struk
+        </a>
     </div>
     <p class="text-stone-500 text-sm mt-1">Dibuat oleh {{ $pesanan->pembuat->name }} &middot; {{ $pesanan->created_at->format('d M Y, H:i') }}</p>
 </div>
@@ -64,8 +72,8 @@
                     <dd class="text-stone-900 font-medium mt-0.5">Rp {{ number_format($pesanan->harga, 0, ',', '.') }}</dd>
                 </div>
                 <div>
-                    <dt class="text-stone-400">Kode Teknisi</dt>
-                    <dd class="text-stone-900 font-medium mt-0.5">{{ $pesanan->kode_teknisi ?? '—' }}</dd>
+                    <dt class="text-stone-400">Teknisi</dt>
+                    <dd class="text-stone-900 font-medium mt-0.5">{{ $pesanan->teknisi->nama ?? '—' }}</dd>
                 </div>
                 
                 {{-- TAMBAHAN: DATA PEMBAYARAN --}}
@@ -73,13 +81,17 @@
                     <dt class="text-stone-400">Status Pembayaran</dt>
                     <dd class="text-stone-900 font-medium mt-0.5">{{ $pesanan->status_pembayaran ?? 'Belum Lunas' }}</dd>
                 </div>
+                <div>
+                    <dt class="text-stone-400">Nominal Dibayar</dt>
+                    <dd class="text-stone-900 font-medium mt-0.5">Rp {{ number_format($pesanan->nominal_pembayaran, 0, ',', '.') }}</dd>
+                </div>
                 <div class="sm:col-span-2">
                     <dt class="text-stone-400">Bukti Pembayaran / Kwitansi</dt>
                     <dd class="text-stone-900 font-medium mt-0.5">
                         @if($pesanan->bukti_pembayaran)
                             <a href="{{ asset($pesanan->bukti_pembayaran) }}" target="_blank" class="inline-flex items-center gap-2 text-brand-600 hover:underline">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                                Lihat File Struk / Kwitansi
+                                Lihat File Bukti
                             </a>
                         @else
                             <span class="text-stone-500">Tidak ada bukti pembayaran diupload</span>
@@ -123,11 +135,16 @@
                 @method('PUT')
                 <h2 class="font-semibold text-stone-900 mb-4">Update Produksi</h2>
 
+                {{-- UBAH INPUT KODE TEKNISI MENJADI DROPDOWN NAMA TEKNISI --}}
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-stone-700 mb-1.5">Kode Teknisi</label>
-                    <input type="text" name="kode_teknisi" value="{{ old('kode_teknisi', $pesanan->kode_teknisi) }}" placeholder="cth. T01"
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition @error('kode_teknisi') border-red-400 @enderror">
-                    @error('kode_teknisi') <p class="text-xs text-red-600 mt-1">Harap isi kode teknisi.</p> @enderror
+                    <label class="block text-sm font-medium text-stone-700 mb-1.5">Nama Teknisi</label>
+                    <select name="teknisi_id" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition @error('teknisi_id') border-red-400 @enderror">
+                        <option value="" disabled selected>Pilih teknisi</option>
+                        @foreach($teknisiList as $t)
+                            <option value="{{ $t->id }}" @selected(old('teknisi_id', $pesanan->teknisi_id) == $t->id)>{{ $t->nama }}</option>
+                        @endforeach
+                    </select>
+                    @error('teknisi_id') <p class="text-xs text-red-600 mt-1">Harap pilih teknisi.</p> @enderror
                 </div>
 
                 <div class="mb-5">

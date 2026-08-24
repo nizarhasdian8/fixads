@@ -25,10 +25,11 @@ class Pesanan extends Model
         'catatan',
         'status',
         'kode_teknisi',
-        'teknisi_id', // TAMBAHAN UNTUK REVISI 4
+        'teknisi_id', 
         'created_by',
-        'status_pembayaran', // TAMBAHAN UNTUK REVISI 3
-        'bukti_pembayaran', // TAMBAHAN UNTUK REVISI 3
+        'status_pembayaran', 
+        'bukti_pembayaran',
+        'nominal_pembayaran', // TAMBAHAN UNTUK REVISI 5
     ];
 
     protected function casts(): array
@@ -36,6 +37,7 @@ class Pesanan extends Model
         return [
             'deadline' => 'date',
             'harga' => 'decimal:2',
+            'nominal_pembayaran' => 'decimal:2', // TAMBAHAN UNTUK REVISI 5
         ];
     }
 

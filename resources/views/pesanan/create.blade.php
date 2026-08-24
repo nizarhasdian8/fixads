@@ -140,7 +140,15 @@
                 </select>
                 @error('status_pembayaran') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
             </div>
-            <div></div> {{-- Spacer --}}
+            
+            {{-- TAMBAHAN INPUTAN NOMINAL PEMBAYARAN --}}
+            <div>
+                <label class="block text-sm font-medium text-stone-700 mb-1.5">Nominal Pembayaran (Rp)</label>
+                <input type="number" name="nominal_pembayaran" value="{{ old('nominal_pembayaran', 0) }}" min="0" step="1000" placeholder="0"
+                    class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition @error('nominal_pembayaran') border-red-400 @enderror">
+                @error('nominal_pembayaran') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+            </div>
+
             <div class="sm:col-span-2">
                 <label class="block text-sm font-medium text-stone-700 mb-1.5">Upload Bukti Pembayaran / Kwitansi</label>
                 <label for="bukti_pembayaran" class="flex items-center justify-center gap-3 border-2 border-dashed border-stone-300 rounded-xl px-4 py-6 cursor-pointer hover:border-brand-400 hover:bg-brand-50/30 transition">
