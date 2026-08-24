@@ -198,11 +198,7 @@
                             <label for="qc_ketahanan" class="text-sm text-stone-700">QC Ketahanan/Outdoor</label>
                         </div>
                     </div>
-                    @if($qcDisabled)
-                        <p class="text-xs text-amber-600 mt-2">QC hanya bisa dicentang saat status pesanan "Diproses".</p>
-                    @else
-                        <p class="text-xs text-stone-400 mt-2">Semua checklist wajib dicentang sebelum status diubah menjadi "Selesai Produksi".</p>
-                    @endif
+                    <p class="text-xs text-stone-400 mt-2">Semua checklist wajib dicentang sebelum status diubah menjadi "Selesai Produksi".</p>
                 </div>
 
                 <div class="mb-2 flex items-center justify-between">
