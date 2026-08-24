@@ -162,6 +162,12 @@
                     </select>
                 </div>
 
+                {{-- TAMBAHAN UNTUK REVISI 6: CHECKBOX QC --}}
+                <div class="mb-5 flex items-center gap-2">
+                    <input type="checkbox" name="qc_status" id="qc_status" value="1" class="rounded border-stone-300 text-brand-600 focus:ring-brand-500" @checked(old('qc_status', $pesanan->qc_status))>
+                    <label for="qc_status" class="text-sm font-medium text-stone-700">Quality Control (QC) Passed</label>
+                </div>
+
                 <div class="mb-2 flex items-center justify-between">
                     <label class="block text-sm font-medium text-stone-700">Pemakaian Bahan Baku</label>
                 </div>

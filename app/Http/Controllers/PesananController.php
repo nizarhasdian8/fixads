@@ -88,7 +88,7 @@ class PesananController extends Controller
             'catatan' => ['nullable', 'string'],
             'status_pembayaran' => ['required', 'in:Belum Lunas,DP,Lunas'], 
             'bukti_pembayaran' => ['required', 'image', 'max:2048'], 
-            'nominal_pembayaran' => ['nullable', 'numeric', 'min:0'], // TAMBAHAN UNTUK REVISI 5
+            'nominal_pembayaran' => ['nullable', 'numeric', 'min:0'],
         ], [
             'nomor_hp.required' => 'Harap isi dengan benar.',
             'nomor_hp.min' => 'Harap isi dengan benar.',
@@ -118,14 +118,12 @@ class PesananController extends Controller
             'catatan' => 'Catatan',
             'status_pembayaran' => 'Status Pembayaran',
             'bukti_pembayaran' => 'Bukti Pembayaran',
-            'nominal_pembayaran' => 'Nominal Pembayaran', // TAMBAHAN UNTUK REVISI 5
+            'nominal_pembayaran' => 'Nominal Pembayaran',
         ]);
 
-        // GABUNGKAN PANJANG LEBAR TEBAL MENJADI 1 KOLOM UKURAN
         $data['ukuran'] = $data['panjang'] . ' x ' . $data['lebar'] . ' x ' . $data['tebal'];
         unset($data['panjang'], $data['lebar'], $data['tebal']);
 
-        // UPLOAD BUKTI PEMBAYARAN (KWITANSI)
         if ($request->hasFile('bukti_pembayaran')) {
             $fileKwitansi = $request->file('bukti_pembayaran');
             $filenameKwitansi = $fileKwitansi->hashName();
@@ -140,7 +138,6 @@ class PesananController extends Controller
             $data['file_desain'] = 'desain-pesanan/' . $filename;
         }
 
-        // Jika status Belum Lunas, pastikan nominal pembayaran 0
         if ($data['status_pembayaran'] === 'Belum Lunas') {
             $data['nominal_pembayaran'] = 0;
         }
@@ -162,7 +159,7 @@ class PesananController extends Controller
             'pesanan' => $pesanan,
             'bahanBakuList' => BahanBaku::orderBy('nama')->get(),
             'statusOptions' => Pesanan::statusOptions(),
-            'teknisiList' => Teknisi::orderBy('nama')->get(), // TAMBAHAN UNTUK DROPDOWN TEKNISI
+            'teknisiList' => Teknisi::orderBy('nama')->get(),
         ]);
     }
 
@@ -188,13 +185,15 @@ class PesananController extends Controller
             return back()->with('error', 'Status pesanan sudah Selesai Produksi dan tidak dapat diubah lagi oleh CIO Production.');
         }
 
-        if (in_array($currentStatus, ['processing', 'delayed']) && $newStatus === 'queue') {
-            return back()->with('error', 'Status yang sudah Diproses tidak dapat dikembalikan ke Antrian.');
+        // CEK STATUS BERTAHAP (TIDAK BOLEH LONCAT DARI ANTRIAN LANGSUNG KE SELESAI)
+        if ($currentStatus === 'queue' && !in_array($newStatus, ['processing', 'delayed'])) {
+            return back()->with('error', 'Pesanan harus diubah ke status "Diproses" terlebih dahulu, tidak bisa langsung ke "Selesai".')->withInput();
         }
 
         $data = $request->validate([
-            'teknisi_id' => ['required', 'exists:teknisi,id'], // UBAH DARI KODE TEKNISI KE ID TEKNISI
+            'teknisi_id' => ['required', 'exists:teknisi,id'],
             'status' => ['required', 'in:queue,processing,completed,delayed'],
+            'qc_status' => ['nullable', 'boolean'], // TAMBAHAN UNTUK REVISI 6
             'bahan' => ['nullable', 'array'],
             'bahan.*.bahan_baku_id' => ['nullable', 'exists:bahan_baku,id'],
             'bahan.*.jumlah_pakai' => ['nullable', 'integer', 'min:1'], 
@@ -202,6 +201,14 @@ class PesananController extends Controller
             'bahan.*.jumlah_pakai.integer' => 'Jumlah pemakaian harus berupa angka bulat.',
             'bahan.*.jumlah_pakai.min' => 'Jumlah pemakaian minimal 1.',
         ]);
+
+        // Konversi checkbox QC ke boolean (true/false)
+        $data['qc_status'] = $request->boolean('qc_status');
+
+        // CEK QC: Jika ingin ubah ke "Selesai Produksi", QC wajib dicentang
+        if ($newStatus === 'completed' && !$data['qc_status']) {
+            return back()->with('error', 'Harap centang "Quality Control (QC) Passed" sebelum mengubah status menjadi Selesai Produksi.')->withInput();
+        }
 
         $barisBahan = collect($data['bahan'] ?? [])
             ->filter(fn ($baris) => ! empty($baris['bahan_baku_id']) && ! empty($baris['jumlah_pakai']));
@@ -223,6 +230,7 @@ class PesananController extends Controller
         if ($stokKurang) {
             $pesanan->update([
                 'teknisi_id' => $data['teknisi_id'],
+                'qc_status' => $data['qc_status'], // Simpan juga QC statusnya
                 'status' => 'delayed',
             ]);
 
@@ -233,6 +241,7 @@ class PesananController extends Controller
         DB::transaction(function () use ($data, $pesanan, $barisBahan) {
             $pesanan->update([
                 'teknisi_id' => $data['teknisi_id'],
+                'qc_status' => $data['qc_status'], // Simpan QC status
                 'status' => $data['status'],
             ]);
 
@@ -263,7 +272,6 @@ class PesananController extends Controller
                 File::delete($filePath);
             }
         }
-        // Hapus juga bukti pembayaran jika ada
         if ($pesanan->bukti_pembayaran) {
             $filePathKwitansi = public_path($pesanan->bukti_pembayaran);
             if (File::exists($filePathKwitansi)) {
@@ -323,12 +331,11 @@ class PesananController extends Controller
         return $pdf->download($namaFile);
     }
 
-    // TAMBAHAN UNTUK REVISI 5: Cetak Struk PDF
     public function downloadStruk(Pesanan $pesanan)
     {
         $pesanan->load(['produk', 'teknisi']);
 
-        // Ukuran kertas thermal kecil (lebar 72mm = 204 point, tinggi auto)
+        // Ukuran kertas thermal (lebar 72mm = 204 point, tinggi 550 point)
         $pdf = Pdf::loadView('pesanan.struk', compact('pesanan'))
             ->setPaper([0, 0, 204, 550]); 
 
