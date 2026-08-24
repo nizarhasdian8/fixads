@@ -198,7 +198,6 @@
                             <label for="qc_ketahanan" class="text-sm text-stone-700">QC Ketahanan/Outdoor</label>
                         </div>
                     </div>
-                    <p class="text-xs text-stone-400 mt-2">Semua checklist wajib dicentang sebelum status diubah menjadi "Selesai Produksi".</p>
                 </div>
 
                 <div class="mb-2 flex items-center justify-between">
