@@ -254,8 +254,8 @@
                     <select name="status" x-model="selectedStatus" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
                         @foreach($statusOptions as $value => $label)
                             @php
-                                // Sembunyikan 'delayed' dari dropdown KECUALI jika status di DB saat ini sedang 'delayed'
-                                $isHidden = ($value === 'delayed' && $pesanan->status !== 'delayed');
+                                // Sembunyikan 'delayed' KECUALI jika sedang tertunda, DAN sembunyikan 'diterima' dari CIO Production
+                                $isHidden = ($value === 'delayed' && $pesanan->status !== 'delayed') || $value === 'diterima';
                             @endphp
                             @if(!$isHidden)
                                 @php
