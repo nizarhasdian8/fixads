@@ -69,17 +69,17 @@
                     <dt class="text-stone-400">Jumlah</dt>
                     <dd class="text-stone-900 font-medium mt-0.5">{{ $pesanan->jumlah }} pcs</dd>
                 </div>
-                                <div>
-                    <dt class="text-stone-400">Teknisi</dt>
-                    <dd class="text-stone-900 font-medium mt-0.5">{{ $pesanan->teknisi->nama ?? '—' }}</dd>
-                </div>
-                
-                {{-- DATA HARGA & PEMBAYARAN (HANYA CIO MARKETING) --}}
-                @if(auth()->user()->isMarketing())
                 <div>
                     <dt class="text-stone-400">Harga</dt>
                     <dd class="text-stone-900 font-medium mt-0.5">Rp {{ number_format($pesanan->harga, 0, ',', '.') }}</dd>
                 </div>
+                <div>
+                    <dt class="text-stone-400">Teknisi</dt>
+                    <dd class="text-stone-900 font-medium mt-0.5">{{ $pesanan->teknisi->nama ?? '—' }}</dd>
+                </div>
+                
+                {{-- DATA PEMBAYARAN (HANYA CIO MARKETING) --}}
+                @if(auth()->user()->isMarketing())
                 <div>
                     <dt class="text-stone-400">Status Pembayaran</dt>
                     <dd class="text-stone-900 font-medium mt-0.5">{{ $pesanan->status_pembayaran ?? 'Belum Lunas' }}</dd>
@@ -88,33 +88,21 @@
                     <dt class="text-stone-400">Nominal Dibayar</dt>
                     <dd class="text-stone-900 font-medium mt-0.5">Rp {{ number_format($pesanan->nominal_pembayaran, 0, ',', '.') }}</dd>
                 </div>
-                <div class="sm:col-span-2">
-                    <dt class="text-stone-400">Bukti Pembayaran DP</dt>
-                    <dd class="text-stone-900 font-medium mt-0.5">
-                        @if($pesanan->bukti_pembayaran)
-                            <a href="{{ asset($pesanan->bukti_pembayaran) }}" target="_blank" class="inline-flex items-center gap-2 text-brand-600 hover:underline">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                                Lihat File Bukti DP
-                            </a>
-                        @else
-                            <span class="text-stone-500">Tidak ada bukti DP</span>
-                        @endif
-                    </dd>
-                </div>
-                <div class="sm:col-span-2">
-                    <dt class="text-stone-400">Bukti Pelunasan</dt>
-                    <dd class="text-stone-900 font-medium mt-0.5">
-                        @if($pesanan->bukti_pelunasan)
-                            <a href="{{ asset($pesanan->bukti_pelunasan) }}" target="_blank" class="inline-flex items-center gap-2 text-brand-600 hover:underline">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                                Lihat File Bukti Pelunasan
-                            </a>
-                        @else
-                            <span class="text-stone-500">Belum ada pelunasan</span>
-                        @endif
-                    </dd>
-                </div>
-                @endif
+
+                {{-- BUKTI PEMBAYARAN: dinamis tergantung apakah order ini pernah DP atau langsung Lunas --}}
+                @if($pesanan->status_pembayaran === 'DP' || $pesanan->bukti_pelunasan)
+                    {{-- Kasus DP -> tampilkan bukti DP dan bukti pelunasan (kalau sudah ada) --}}
+                    <div class="sm:col-span-2">
+                        <dt class="text-stone-400">Bukti Pembayaran DP</dt>
+                        <dd class="text-stone-900 font-medium mt-0.5">
+                            @if($pesanan->bukti_pembayaran)
+                                <a href="{{ asset($pesanan->bukti_pembayaran) }}" target="_blank" class="inline-flex items-center gap-2 text-brand-600 hover:underline">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                                    Lihat File Bukti DP
+                                </a>
+                            @else
+                                <span class="text-stone-500">Tidak ada bukti DP</span>
+                            @endif
                         </dd>
                     </div>
 
