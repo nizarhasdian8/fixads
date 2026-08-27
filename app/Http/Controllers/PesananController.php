@@ -191,10 +191,10 @@ class PesananController extends Controller
         }
 
         $data = $request->validate([
-            'teknisi_id' => ['required', 'exists:teknisi,id'],
+            'teknisi_id' => ['nullable', 'exists:teknisi,id'], 
             'status' => ['required', 'in:queue,processing,completed,delayed'],
-            'tanggal_diproses' => ['nullable', 'date'], // TAMBAHAN REVISI TANGGAL
-            'tanggal_selesai' => ['nullable', 'date'], // TAMBAHAN REVISI TANGGAL
+            'tanggal_diproses' => ['nullable', 'date'], 
+            'tanggal_selesai' => ['nullable', 'date'], 
             'qc_desain' => ['nullable', 'boolean'], 
             'qc_konstruksi' => ['nullable', 'boolean'], 
             'qc_kelistrikan' => ['nullable', 'boolean'], 
@@ -206,6 +206,27 @@ class PesananController extends Controller
             'bahan.*.jumlah_pakai.integer' => 'Jumlah pemakaian harus berupa angka bulat.',
             'bahan.*.jumlah_pakai.min' => 'Jumlah pemakaian minimal 1.',
         ]);
+
+        // KUNCI TEKNISI & TANGGAL PRODUKSI: Jika status pesanan LAMA sudah "Diproses" (atau selanjutnya), 
+        // maka data teknisi & tanggal diproses TIDAK BISA DIRUBAH, wajib pakai data dari database.
+        if (in_array($currentStatus, ['processing', 'delayed', 'completed'])) {
+            $data['teknisi_id'] = $pesanan->teknisi_id;
+            $data['tanggal_diproses'] = $pesanan->tanggal_diproses ? $pesanan->tanggal_diproses->format('Y-m-d') : null;
+        } else {
+            // Jika status pesanan LAMA masih "Antrian" (queue), boleh ambil dari inputan form
+            if (empty($data['teknisi_id'])) {
+                $data['teknisi_id'] = $pesanan->teknisi_id;
+            }
+            // Validasi tambahan: Jika teknisi masih kosong dan status baru diproses/delayed/selesai, tolak
+            if (in_array($newStatus, ['processing', 'delayed', 'completed']) && empty($data['teknisi_id'])) {
+                 return back()->with('error', 'Harap pilih teknisi terlebih dahulu.')->withInput();
+            }
+
+            // Jika tanggal_diproses tidak dikirim, gunakan yang lama dari database
+            if (empty($data['tanggal_diproses'])) {
+                $data['tanggal_diproses'] = $pesanan->tanggal_diproses ? $pesanan->tanggal_diproses->format('Y-m-d') : null;
+            }
+        }
 
         // Konversi 4 checkbox QC ke boolean (true/false)
         $data['qc_desain'] = $request->boolean('qc_desain');
@@ -238,8 +259,8 @@ class PesananController extends Controller
         if ($stokKurang) {
             $pesanan->update([
                 'teknisi_id' => $data['teknisi_id'],
-                'tanggal_diproses' => $data['tanggal_diproses'] ?? null, // Simpan tanggal
-                'tanggal_selesai' => $data['tanggal_selesai'] ?? null, // Simpan tanggal
+                'tanggal_diproses' => $data['tanggal_diproses'] ?? null,
+                'tanggal_selesai' => $data['tanggal_selesai'] ?? null,
                 'qc_desain' => $data['qc_desain'], 
                 'qc_konstruksi' => $data['qc_konstruksi'], 
                 'qc_kelistrikan' => $data['qc_kelistrikan'], 
@@ -254,8 +275,8 @@ class PesananController extends Controller
         DB::transaction(function () use ($data, $pesanan, $barisBahan) {
             $pesanan->update([
                 'teknisi_id' => $data['teknisi_id'],
-                'tanggal_diproses' => $data['tanggal_diproses'] ?? null, // Simpan tanggal
-                'tanggal_selesai' => $data['tanggal_selesai'] ?? null, // Simpan tanggal
+                'tanggal_diproses' => $data['tanggal_diproses'] ?? null,
+                'tanggal_selesai' => $data['tanggal_selesai'] ?? null,
                 'qc_desain' => $data['qc_desain'], 
                 'qc_konstruksi' => $data['qc_konstruksi'], 
                 'qc_kelistrikan' => $data['qc_kelistrikan'], 
@@ -353,7 +374,6 @@ class PesananController extends Controller
     {
         $pesanan->load(['produk', 'teknisi']);
 
-        // Ukuran kertas thermal (lebar 72mm = 204 point, tinggi 550 point)
         $pdf = Pdf::loadView('pesanan.struk', compact('pesanan'))
             ->setPaper([0, 0, 204, 550]); 
 
