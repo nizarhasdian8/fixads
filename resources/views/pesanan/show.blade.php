@@ -184,8 +184,8 @@
                     <input type="date" name="tanggal_selesai" value="{{ old('tanggal_selesai', $pesanan->tanggal_selesai ? $pesanan->tanggal_selesai->format('Y-m-d') : '') }}" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
                 </div>
 
-                {{-- 4 CHECKBOX QC (HANYA MUNCUL SAAT DIPROSES) --}}
-                <div x-show="selectedStatus === 'processing'" class="mb-5">
+                {{-- 4 CHECKBOX QC (AKTIF JIKA DIPROSES ATAU AKAN DIUBAH JADI SELESAI) --}}
+                <div x-show="selectedStatus === 'processing' || selectedStatus === 'completed'" class="mb-5">
                     <label class="block text-sm font-medium text-stone-700 mb-2">Quality Control (QC)</label>
                     <div class="space-y-2">
                         <div class="flex items-center gap-2">
@@ -203,29 +203,6 @@
                         <div class="flex items-center gap-2">
                             <input type="checkbox" name="qc_ketahanan" id="qc_ketahanan" value="1" class="rounded border-stone-300 text-brand-600 focus:ring-brand-500" @checked(old('qc_ketahanan', $pesanan->qc_ketahanan))>
                             <label for="qc_ketahanan" class="text-sm text-stone-700">QC Ketahanan/Outdoor</label>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- JIKA SUDAH SELESAI (COMPLETED), TAMPILKAN QC SEBAGAI READ-ONLY --}}
-                <div x-show="selectedStatus === 'completed'" class="mb-5">
-                    <label class="block text-sm font-medium text-stone-700 mb-2">Quality Control (QC) Result</label>
-                    <div class="space-y-2">
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" disabled @checked($pesanan->qc_desain) class="rounded border-stone-300 text-brand-600">
-                            <span class="text-sm text-stone-700">QC Desain & Ukuran</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" disabled @checked($pesanan->qc_konstruksi) class="rounded border-stone-300 text-brand-600">
-                            <span class="text-sm text-stone-700">QC Pengerjaan/Konstruksi</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" disabled @checked($pesanan->qc_kelistrikan) class="rounded border-stone-300 text-brand-600">
-                            <span class="text-sm text-stone-700">QC Kelistrikan</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" disabled @checked($pesanan->qc_ketahanan) class="rounded border-stone-300 text-brand-600">
-                            <span class="text-sm text-stone-700">QC Ketahanan/Outdoor</span>
                         </div>
                     </div>
                 </div>
