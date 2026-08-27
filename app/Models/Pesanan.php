@@ -45,6 +45,7 @@ class Pesanan extends Model
         'status_pembayaran', 
         'bukti_pembayaran',
         'nominal_pembayaran', 
+        'bukti_pelunasan', // <-- TAMBAHAN BARU
     ];
 
     protected function casts(): array
