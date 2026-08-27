@@ -134,7 +134,11 @@
         {{-- 1. FORM UBAH STATUS (HANYA CIO PRODUCTION & STATUS MASIH PRODUKSI) --}}
         @if(auth()->user()->isProduction() && in_array($pesanan->status, ['queue', 'processing', 'delayed']))
         <div class="bg-white border border-stone-200 rounded-2xl p-6">
-            <form method="POST" action="{{ route('pesanan.update-status', $pesanan) }}" x-data="{ rows: [{ bahan_baku_id: '', jumlah_pakai: '' }], selectedStatus: '{{ $pesanan->status }}' }">
+            @php
+                // Cek apakah status yang tersimpan di DB saat ini adalah Diproses atau Tertunda
+                $isCurrentlyProcessing = in_array($pesanan->status, ['processing', 'delayed']);
+            @endphp
+            <form method="POST" action="{{ route('pesanan.update-status', $pesanan) }}" x-data="{ rows: [{ bahan_baku_id: '', jumlah_pakai: '' }], selectedStatus: '{{ $pesanan->status }}', isProcessing: {{ json_encode($isCurrentlyProcessing) }} }">
                 @csrf
                 @method('PUT')
                 <h2 class="font-semibold text-stone-900 mb-4">Update Produksi</h2>
@@ -184,8 +188,8 @@
                     <input type="date" name="tanggal_selesai" value="{{ old('tanggal_selesai', $pesanan->tanggal_selesai ? $pesanan->tanggal_selesai->format('Y-m-d') : '') }}" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
                 </div>
 
-                {{-- 4 CHECKBOX QC (AKTIF JIKA DIPROSES ATAU AKAN DIUBAH JADI SELESAI) --}}
-                <div x-show="selectedStatus === 'processing' || selectedStatus === 'completed'" class="mb-5">
+                {{-- 4 CHECKBOX QC (HANYA MUNCUL JIKA DB SUDAH DIPROSES DAN DIPILIH SELESAI) --}}
+                <div x-show="selectedStatus === 'completed' && isProcessing" class="mb-5">
                     <label class="block text-sm font-medium text-stone-700 mb-2">Quality Control (QC)</label>
                     <div class="space-y-2">
                         <div class="flex items-center gap-2">
