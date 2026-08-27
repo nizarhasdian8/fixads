@@ -5,7 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property Carbon $deadline
+ * @property Carbon|null $tanggal_diproses
+ * @property Carbon|null $tanggal_selesai
+ * @property string $status
+ * @property string $nomor_invoice
+ * @property string $nama_customer
+ */
 class Pesanan extends Model
 {
     protected $table = 'pesanan';
@@ -24,8 +33,8 @@ class Pesanan extends Model
         'deadline',
         'catatan',
         'status',
-        'tanggal_diproses', // TAMBAHAN REVISI TANGGAL
-        'tanggal_selesai', // TAMBAHAN REVISI TANGGAL
+        'tanggal_diproses', 
+        'tanggal_selesai', 
         'kode_teknisi',
         'teknisi_id', 
         'qc_desain', 
@@ -42,8 +51,8 @@ class Pesanan extends Model
     {
         return [
             'deadline' => 'date',
-            'tanggal_diproses' => 'date', // TAMBAHAN REVISI TANGGAL
-            'tanggal_selesai' => 'date', // TAMBAHAN REVISI TANGGAL
+            'tanggal_diproses' => 'date', 
+            'tanggal_selesai' => 'date', 
             'harga' => 'decimal:2',
             'nominal_pembayaran' => 'decimal:2',
             'qc_desain' => 'boolean', 
