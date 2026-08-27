@@ -68,8 +68,8 @@
                     Masuk
                 </button>
 
-                <button type="submit"
-                    class="w-full bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white font-semibold text-sm py-2.5 rounded-xl transition shadow-sm shadow-brand-500/20">
+                <button type="button" onclick="window.close();"
+                    class="w-full bg-stone-200 hover:bg-stone-300 active:bg-stone-400 text-stone-800 font-semibold text-sm py-2.5 rounded-xl transition shadow-sm">
                     Keluar
                 </button>
             </form>
