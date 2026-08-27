@@ -142,7 +142,7 @@
                 $ukuranParts = explode(' x ', $pesanan->ukuran);
                 $p = floatval($ukuranParts[0] ?? 0);
                 $l = floatval($ukuranParts[1] ?? 0);
-                $j = floatval($pesanan->jumlah);
+                $j = (int) $pesanan->jumlah;
 
                 // Siapkan map javascript untuk AlpineJS (agar tau nama & satuan saat dipilih manual)
                 $bahanMap = $bahanBakuList->mapWithKeys(function($b) {
@@ -163,33 +163,33 @@
                         });
                     };
 
-                    // RUMUS OTOMATIS PER PRODUK (is_saved = false agar bisa dihapus saat masih antrian)
+                    // RUMUS OTOMATIS PER PRODUK (Pakai (int) agar bulat mutlak tanpa koma)
                     if (str_contains($produkNama, 'neon box')) {
-                        if ($b = $findBahan('Acrylic 3mm')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($luas / 3 * $j)), 'is_saved' => false];
-                        if ($b = $findBahan('Neon Flex LED')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j)), 'is_saved' => false];
-                        if ($b = $findBahan('Power Supply')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j / 3)), 'is_saved' => false];
-                        if ($b = $findBahan('Kabel Listrik')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, $j), 'is_saved' => false];
+                        if ($b = $findBahan('Acrylic 3mm')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)(int)max(1, ceil($luas / 3 * $j)), 'is_saved' => false];
+                        if ($b = $findBahan('Neon Flex LED')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)(int)max(1, ceil($keliling * $j)), 'is_saved' => false];
+                        if ($b = $findBahan('Power Supply')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)(int)max(1, ceil($keliling * $j / 3)), 'is_saved' => false];
+                        if ($b = $findBahan('Kabel Listrik')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)(int)max(1, $j), 'is_saved' => false];
                     } elseif (str_contains($produkNama, 'neon flex')) {
-                        if ($b = $findBahan('Neon Flex LED')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j)), 'is_saved' => false];
-                        if ($b = $findBahan('Power Supply')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j / 3)), 'is_saved' => false];
-                        if ($b = $findBahan('Kabel Listrik')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, $j), 'is_saved' => false];
+                        if ($b = $findBahan('Neon Flex LED')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)(int)max(1, ceil($keliling * $j)), 'is_saved' => false];
+                        if ($b = $findBahan('Power Supply')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)(int)max(1, ceil($keliling * $j / 3)), 'is_saved' => false];
+                        if ($b = $findBahan('Kabel Listrik')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)(int)max(1, $j), 'is_saved' => false];
                     } elseif (str_contains($produkNama, 'running text')) {
-                        if ($b = $findBahan('Rangka Aluminium')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j)), 'is_saved' => false];
-                        $ledMod = ceil($luas * 20) * $j;
-                        if ($b = $findBahan('LED Module')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, $ledMod), 'is_saved' => false];
-                        if ($b = $findBahan('Power Supply')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($ledMod / 50)), 'is_saved' => false];
-                        if ($b = $findBahan('Kabel Listrik')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, $j), 'is_saved' => false];
+                        if ($b = $findBahan('Rangka Aluminium')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)(int)max(1, ceil($keliling * $j)), 'is_saved' => false];
+                        $ledMod = (int)ceil($luas * 20) * $j;
+                        if ($b = $findBahan('LED Module')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)$ledMod, 'is_saved' => false];
+                        if ($b = $findBahan('Power Supply')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)(int)max(1, ceil($ledMod / 50)), 'is_saved' => false];
+                        if ($b = $findBahan('Kabel Listrik')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)(int)max(1, $j), 'is_saved' => false];
                     } elseif (str_contains($produkNama, 'slimbox')) {
-                        if ($b = $findBahan('Acrylic 3mm')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($luas / 3 * $j)), 'is_saved' => false];
-                        if ($b = $findBahan('Rangka Aluminium')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j)), 'is_saved' => false];
-                        $ledMod = ceil($luas * 100) * $j;
-                        if ($b = $findBahan('LED Module')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, $ledMod), 'is_saved' => false];
-                        if ($b = $findBahan('Power Supply')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($ledMod / 50)), 'is_saved' => false];
+                        if ($b = $findBahan('Acrylic 3mm')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)(int)max(1, ceil($luas / 3 * $j)), 'is_saved' => false];
+                        if ($b = $findBahan('Rangka Aluminium')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)(int)max(1, ceil($keliling * $j)), 'is_saved' => false];
+                        $ledMod = (int)ceil($luas * 100) * $j;
+                        if ($b = $findBahan('LED Module')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)$ledMod, 'is_saved' => false];
+                        if ($b = $findBahan('Power Supply')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)(int)max(1, ceil($ledMod / 50)), 'is_saved' => false];
                     } elseif (str_contains($produkNama, 'backlight')) {
-                        if ($b = $findBahan('Acrylic 3mm')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($luas / 3 * $j)), 'is_saved' => false];
-                        $ledMod = ceil($luas * 100) * $j;
-                        if ($b = $findBahan('LED Module')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, $ledMod), 'is_saved' => false];
-                        if ($b = $findBahan('Power Supply')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($ledMod / 50)), 'is_saved' => false];
+                        if ($b = $findBahan('Acrylic 3mm')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)(int)max(1, ceil($luas / 3 * $j)), 'is_saved' => false];
+                        $ledMod = (int)ceil($luas * 100) * $j;
+                        if ($b = $findBahan('LED Module')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)$ledMod, 'is_saved' => false];
+                        if ($b = $findBahan('Power Supply')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)(int)max(1, ceil($ledMod / 50)), 'is_saved' => false];
                     }
                 }
 
@@ -201,13 +201,13 @@
                             'bahan_baku_id' => $row['bahan_baku_id'],
                             'nama' => $b?->nama ?? '',
                             'satuan' => $b?->satuan ?? '',
-                            'jumlah_pakai' => $row['jumlah_pakai'],
-                            'is_saved' => $pesanan->pemakaianBahan->isNotEmpty() // Jika gagal validasi tapi sebelumnya sudah disimpan
+                            'jumlah_pakai' => (string)(int)$row['jumlah_pakai'], // Bulatkan
+                            'is_saved' => $pesanan->pemakaianBahan->isNotEmpty()
                         ];
                     })->values()->toArray();
                 } elseif ($pesanan->pemakaianBahan->isNotEmpty()) {
                     // Jika sudah pernah disimpan, ambil dari DB (is_saved = true agar tidak bisa dihapus)
-                    $initialRows = $pesanan->pemakaianBahan->map(fn($pb) => ['bahan_baku_id' => (string)$pb->bahan_baku_id, 'nama' => $pb->bahanBaku->nama, 'satuan' => $pb->bahanBaku->satuan, 'jumlah_pakai' => (string)$pb->jumlah_pakai, 'is_saved' => true])->toArray();
+                    $initialRows = $pesanan->pemakaianBahan->map(fn($pb) => ['bahan_baku_id' => (string)$pb->bahan_baku_id, 'nama' => $pb->bahanBaku->nama, 'satuan' => $pb->bahanBaku->satuan, 'jumlah_pakai' => (string)(int)$pb->jumlah_pakai, 'is_saved' => true])->toArray();
                 } elseif (count($autoBahan) > 0) {
                     $initialRows = $autoBahan;
                 } else {
@@ -347,7 +347,7 @@
                 @foreach($pesanan->pemakaianBahan as $pakai)
                 <div class="py-2.5 flex items-center justify-between text-sm">
                     <span class="text-stone-700">{{ $pakai->bahanBaku->nama }}</span>
-                    <span class="font-medium text-stone-900">{{ floatval($pakai->jumlah_pakai) }} {{ $pakai->bahanBaku->satuan }}</span>
+                    <span class="font-medium text-stone-900">{{ intval($pakai->jumlah_pakai) }} {{ $pakai->bahanBaku->satuan }}</span>
                 </div>
                 @endforeach
             </div>
@@ -404,7 +404,7 @@
                 @foreach($pesanan->pemakaianBahan as $pakai)
                 <div class="py-2.5 flex items-center justify-between text-sm">
                     <span class="text-stone-700">{{ $pakai->bahanBaku->nama }}</span>
-                    <span class="font-medium text-stone-900">{{ floatval($pakai->jumlah_pakai) }} {{ $pakai->bahanBaku->satuan }}</span>
+                    <span class="font-medium text-stone-900">{{ intval($pakai->jumlah_pakai) }} {{ $pakai->bahanBaku->satuan }}</span>
                 </div>
                 @endforeach
             </div>
