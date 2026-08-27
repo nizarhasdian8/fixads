@@ -211,6 +211,10 @@
                             <label for="qc_ketahanan" class="text-sm text-stone-700">QC Ketahanan/Outdoor</label>
                         </div>
                     </div>
+                    {{-- PESAN ERROR QC DI BAWAH INI --}}
+                    @if ($errors->has('qc_error'))
+                        <p class="text-xs text-red-600 mt-2">{{ $errors->first('qc_error') }}</p>
+                    @endif
                 </div>
 
                 <div class="mb-2 flex items-center justify-between">

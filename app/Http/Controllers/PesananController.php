@@ -251,7 +251,8 @@ class PesananController extends Controller
 
         // CEK QC: Jika ingin ubah ke "Selesai Produksi", ke-4 QC wajib dicentang semua
         if ($newStatus === 'completed' && (!$data['qc_desain'] || !$data['qc_konstruksi'] || !$data['qc_kelistrikan'] || !$data['qc_ketahanan'])) {
-            return back()->with('error', 'Harap centang semua checklist "Quality Control (QC)" sebelum mengubah status menjadi Selesai Produksi.')->withInput();
+            // UBAH: Kirim error ke bagian 'qc_error' agar bisa ditangkap di bawah checkbox
+            return back()->withErrors(['qc_error' => 'harap lakukan pengecekkan QC'])->withInput();
         }
 
         $barisBahan = collect($data['bahan'] ?? [])
