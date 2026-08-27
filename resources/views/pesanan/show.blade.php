@@ -144,6 +144,11 @@
                 $l = floatval($ukuranParts[1] ?? 0);
                 $j = floatval($pesanan->jumlah);
 
+                // Siapkan map javascript untuk AlpineJS (agar tau nama & satuan saat dipilih manual)
+                $bahanMap = $bahanBakuList->mapWithKeys(function($b) {
+                    return [(string)$b->id => ['nama' => $b->nama, 'satuan' => $b->satuan]];
+                })->toJson();
+
                 $autoBahan = [];
                 if ($p > 0 && $l > 0) {
                     $luas = ($p * $l) / 10000; // konversi cm2 ke m2
@@ -151,41 +156,40 @@
 
                     $produkNama = strtolower($pesanan->produk->nama_produk);
 
-                    // Cari ID bahan berdasarkan nama persis di database
-                    $findBahanId = function($nama) use ($bahanBakuList) {
-                        $bahan = $bahanBakuList->first(function($b) use ($nama) {
+                    // Cari bahan beserta nama & satuan berdasarkan nama persis di database
+                    $findBahan = function($nama) use ($bahanBakuList) {
+                        return $bahanBakuList->first(function($b) use ($nama) {
                             return strtolower($b->nama) === strtolower($nama);
                         });
-                        return $bahan ? (string)$bahan->id : null;
                     };
 
                     // RUMUS OTOMATIS PER PRODUK
                     if (str_contains($produkNama, 'neon box')) {
-                        if ($id = $findBahanId('Acrylic 3mm')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($luas / 3 * $j))];
-                        if ($id = $findBahanId('Neon Flex LED')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j))];
-                        if ($id = $findBahanId('Power Supply')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j / 3))];
-                        if ($id = $findBahanId('Kabel Listrik')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, $j)];
+                        if ($b = $findBahan('Acrylic 3mm')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($luas / 3 * $j))];
+                        if ($b = $findBahan('Neon Flex LED')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j))];
+                        if ($b = $findBahan('Power Supply')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j / 3))];
+                        if ($b = $findBahan('Kabel Listrik')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, $j)];
                     } elseif (str_contains($produkNama, 'neon flex')) {
-                        if ($id = $findBahanId('Neon Flex LED')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j))];
-                        if ($id = $findBahanId('Power Supply')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j / 3))];
-                        if ($id = $findBahanId('Kabel Listrik')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, $j)];
+                        if ($b = $findBahan('Neon Flex LED')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j))];
+                        if ($b = $findBahan('Power Supply')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j / 3))];
+                        if ($b = $findBahan('Kabel Listrik')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, $j)];
                     } elseif (str_contains($produkNama, 'running text')) {
-                        if ($id = $findBahanId('Rangka Aluminium')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j))];
+                        if ($b = $findBahan('Rangka Aluminium')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j))];
                         $ledMod = ceil($luas * 20) * $j;
-                        if ($id = $findBahanId('LED Module')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, $ledMod)];
-                        if ($id = $findBahanId('Power Supply')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($ledMod / 50))];
-                        if ($id = $findBahanId('Kabel Listrik')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, $j)];
+                        if ($b = $findBahan('LED Module')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, $ledMod)];
+                        if ($b = $findBahan('Power Supply')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($ledMod / 50))];
+                        if ($b = $findBahan('Kabel Listrik')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, $j)];
                     } elseif (str_contains($produkNama, 'slimbox')) {
-                        if ($id = $findBahanId('Acrylic 3mm')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($luas / 3 * $j))];
-                        if ($id = $findBahanId('Rangka Aluminium')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j))];
+                        if ($b = $findBahan('Acrylic 3mm')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($luas / 3 * $j))];
+                        if ($b = $findBahan('Rangka Aluminium')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j))];
                         $ledMod = ceil($luas * 100) * $j;
-                        if ($id = $findBahanId('LED Module')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, $ledMod)];
-                        if ($id = $findBahanId('Power Supply')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($ledMod / 50))];
+                        if ($b = $findBahan('LED Module')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, $ledMod)];
+                        if ($b = $findBahan('Power Supply')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($ledMod / 50))];
                     } elseif (str_contains($produkNama, 'backlight')) {
-                        if ($id = $findBahanId('Acrylic 3mm')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($luas / 3 * $j))];
+                        if ($b = $findBahan('Acrylic 3mm')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($luas / 3 * $j))];
                         $ledMod = ceil($luas * 100) * $j;
-                        if ($id = $findBahanId('LED Module')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, $ledMod)];
-                        if ($id = $findBahanId('Power Supply')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($ledMod / 50))];
+                        if ($b = $findBahan('LED Module')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, $ledMod)];
+                        if ($b = $findBahan('Power Supply')) $autoBahan[] = ['bahan_baku_id' => (string)$b->id, 'nama' => $b->nama, 'satuan' => $b->satuan, 'jumlah_pakai' => (string)max(1, ceil($ledMod / 50))];
                     }
                 }
 
@@ -193,15 +197,15 @@
                 if (old('bahan')) {
                     $initialRows = old('bahan');
                 } elseif ($pesanan->pemakaianBahan->isNotEmpty()) {
-                    // Jika sudah pernah disimpan (misal pas ubah dari Diproses ke Selesai), ambil dari DB
-                    $initialRows = $pesanan->pemakaianBahan->map(fn($pb) => ['bahan_baku_id' => (string)$pb->bahan_baku_id, 'jumlah_pakai' => (string)$pb->jumlah_pakai])->toArray();
+                    // Jika sudah pernah disimpan, ambil dari DB
+                    $initialRows = $pesanan->pemakaianBahan->map(fn($pb) => ['bahan_baku_id' => (string)$pb->bahan_baku_id, 'nama' => $pb->bahanBaku->nama, 'satuan' => $pb->bahanBaku->satuan, 'jumlah_pakai' => (string)$pb->jumlah_pakai])->toArray();
                 } elseif (count($autoBahan) > 0) {
                     $initialRows = $autoBahan;
                 } else {
-                    $initialRows = [['bahan_baku_id' => '', 'jumlah_pakai' => '']];
+                    $initialRows = [['bahan_baku_id' => '', 'nama' => '', 'satuan' => '', 'jumlah_pakai' => '']];
                 }
             @endphp
-            <form method="POST" action="{{ route('pesanan.update-status', $pesanan) }}" x-data="{ rows: {{ json_encode($initialRows) }}, selectedStatus: '{{ old('status', $pesanan->status) }}', isProcessing: {{ json_encode($isCurrentlyProcessing) }} }">
+            <form method="POST" action="{{ route('pesanan.update-status', $pesanan) }}" x-data="{ rows: {{ json_encode($initialRows) }}, bahanMap: {{ $bahanMap }}, selectedStatus: '{{ old('status', $pesanan->status) }}', isProcessing: {{ json_encode($isCurrentlyProcessing) }} }">
                 @csrf
                 @method('PUT')
                 <h2 class="font-semibold text-stone-900 mb-4">Update Produksi</h2>
@@ -288,20 +292,39 @@
                 @error('bahan') <p class="text-xs text-red-600 mb-3">{{ $message }}</p> @enderror
 
                 <template x-for="(row, index) in rows" :key="index">
-                    <div class="flex gap-2 mb-2">
-                        <select :name="'bahan[' + index + '][bahan_baku_id]'" x-model="row.bahan_baku_id" class="flex-1 px-3 py-2 rounded-lg border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
-                            <option value="">Pilih bahan...</option>
-                            @foreach($bahanBakuList as $bahan)
-                            <option value="{{ $bahan->id }}">{{ $bahan->nama }} ({{ floatval($bahan->stok) }} {{ $bahan->satuan }})</option>
-                            @endforeach
-                        </select>
-                        <input type="number" step="1" min="1" :name="'bahan[' + index + '][jumlah_pakai]'" x-model="row.jumlah_pakai" placeholder="Jumlah" class="w-24 px-3 py-2 rounded-lg border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
+                    <div class="flex items-center gap-2 mb-2">
+                        {{-- Hidden input untuk menyimpan ID bahan baku --}}
+                        <input type="hidden" :name="'bahan[' + index + '][bahan_baku_id]'" x-model="row.bahan_baku_id">
+                        
+                        <div class="flex-1">
+                            {{-- Jika bahan sudah ada (auto-fill atau dari DB), tampilkan sebagai teks --}}
+                            <template x-if="row.bahan_baku_id">
+                                <div class="px-3 py-2 rounded-lg border border-stone-200 text-sm bg-stone-50 text-stone-700">
+                                    <span x-text="row.nama || bahanMap[row.bahan_baku_id]?.nama"></span>
+                                </div>
+                            </template>
+                            {{-- Jika bahan masih kosong (klik tambah manual), tampilkan dropdown --}}
+                            <template x-if="!row.bahan_baku_id">
+                                <select @change="row.nama = bahanMap[$event.target.value].nama; row.satuan = bahanMap[$event.target.value].satuan" x-model="row.bahan_baku_id" class="w-full px-3 py-2 rounded-lg border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
+                                    <option value="">Pilih bahan...</option>
+                                    @foreach($bahanBakuList as $bahan)
+                                    <option value="{{ $bahan->id }}">{{ $bahan->nama }}</option>
+                                    @endforeach
+                                </select>
+                            </template>
+                        </div>
+
+                        <div class="flex items-center gap-1">
+                            <input type="number" step="1" min="1" :name="'bahan[' + index + '][jumlah_pakai]'" x-model="row.jumlah_pakai" placeholder="Jumlah" class="w-20 px-3 py-2 rounded-lg border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
+                            <span class="text-xs text-stone-500 w-16" x-text="row.satuan || (bahanMap[row.bahan_baku_id]?.satuan || '')"></span>
+                        </div>
+
                         <button type="button" @click="rows.splice(index, 1)" class="px-2.5 text-stone-400 hover:text-red-600 transition" x-show="rows.length > 1">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                     </div>
                 </template>
-                <button type="button" @click="rows.push({ bahan_baku_id: '', jumlah_pakai: '' })" class="text-sm font-medium text-brand-600 hover:text-brand-700 mb-5">+ Tambah bahan</button>
+                <button type="button" @click="rows.push({ bahan_baku_id: '', nama: '', satuan: '', jumlah_pakai: '' })" class="text-sm font-medium text-brand-600 hover:text-brand-700 mb-5">+ Tambah bahan</button>
 
                 <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-semibold text-sm py-2.5 rounded-xl transition shadow-sm shadow-brand-500/20">Update</button>
             </form>
