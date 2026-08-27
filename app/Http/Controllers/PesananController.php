@@ -193,10 +193,12 @@ class PesananController extends Controller
         $data = $request->validate([
             'teknisi_id' => ['required', 'exists:teknisi,id'],
             'status' => ['required', 'in:queue,processing,completed,delayed'],
-            'qc_desain' => ['nullable', 'boolean'], // TAMBAHAN QC BARU
-            'qc_konstruksi' => ['nullable', 'boolean'], // TAMBAHAN QC BARU
-            'qc_kelistrikan' => ['nullable', 'boolean'], // TAMBAHAN QC BARU
-            'qc_ketahanan' => ['nullable', 'boolean'], // TAMBAHAN QC BARU
+            'tanggal_diproses' => ['nullable', 'date'], // TAMBAHAN REVISI TANGGAL
+            'tanggal_selesai' => ['nullable', 'date'], // TAMBAHAN REVISI TANGGAL
+            'qc_desain' => ['nullable', 'boolean'], 
+            'qc_konstruksi' => ['nullable', 'boolean'], 
+            'qc_kelistrikan' => ['nullable', 'boolean'], 
+            'qc_ketahanan' => ['nullable', 'boolean'], 
             'bahan' => ['nullable', 'array'],
             'bahan.*.bahan_baku_id' => ['nullable', 'exists:bahan_baku,id'],
             'bahan.*.jumlah_pakai' => ['nullable', 'integer', 'min:1'], 
@@ -236,10 +238,12 @@ class PesananController extends Controller
         if ($stokKurang) {
             $pesanan->update([
                 'teknisi_id' => $data['teknisi_id'],
-                'qc_desain' => $data['qc_desain'], // Simpan QC statusnya
-                'qc_konstruksi' => $data['qc_konstruksi'], // Simpan QC statusnya
-                'qc_kelistrikan' => $data['qc_kelistrikan'], // Simpan QC statusnya
-                'qc_ketahanan' => $data['qc_ketahanan'], // Simpan QC statusnya
+                'tanggal_diproses' => $data['tanggal_diproses'] ?? null, // Simpan tanggal
+                'tanggal_selesai' => $data['tanggal_selesai'] ?? null, // Simpan tanggal
+                'qc_desain' => $data['qc_desain'], 
+                'qc_konstruksi' => $data['qc_konstruksi'], 
+                'qc_kelistrikan' => $data['qc_kelistrikan'], 
+                'qc_ketahanan' => $data['qc_ketahanan'], 
                 'status' => 'delayed',
             ]);
 
@@ -250,10 +254,12 @@ class PesananController extends Controller
         DB::transaction(function () use ($data, $pesanan, $barisBahan) {
             $pesanan->update([
                 'teknisi_id' => $data['teknisi_id'],
-                'qc_desain' => $data['qc_desain'], // Simpan QC statusnya
-                'qc_konstruksi' => $data['qc_konstruksi'], // Simpan QC statusnya
-                'qc_kelistrikan' => $data['qc_kelistrikan'], // Simpan QC statusnya
-                'qc_ketahanan' => $data['qc_ketahanan'], // Simpan QC statusnya
+                'tanggal_diproses' => $data['tanggal_diproses'] ?? null, // Simpan tanggal
+                'tanggal_selesai' => $data['tanggal_selesai'] ?? null, // Simpan tanggal
+                'qc_desain' => $data['qc_desain'], 
+                'qc_konstruksi' => $data['qc_konstruksi'], 
+                'qc_kelistrikan' => $data['qc_kelistrikan'], 
+                'qc_ketahanan' => $data['qc_ketahanan'], 
                 'status' => $data['status'],
             ]);
 

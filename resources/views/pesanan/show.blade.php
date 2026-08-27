@@ -134,7 +134,8 @@
         {{-- 1. FORM UBAH STATUS (HANYA CIO PRODUCTION & STATUS MASIH PRODUKSI) --}}
         @if(auth()->user()->isProduction() && in_array($pesanan->status, ['queue', 'processing', 'delayed']))
         <div class="bg-white border border-stone-200 rounded-2xl p-6">
-            <form method="POST" action="{{ route('pesanan.update-status', $pesanan) }}" x-data="{ rows: [{ bahan_baku_id: '', jumlah_pakai: '' }] }">
+            {{-- TAMBAHKAN selectedStatus di x-data --}}
+            <form method="POST" action="{{ route('pesanan.update-status', $pesanan) }}" x-data="{ rows: [{ bahan_baku_id: '', jumlah_pakai: '' }], selectedStatus: '{{ $pesanan->status }}' }">
                 @csrf
                 @method('PUT')
                 <h2 class="font-semibold text-stone-900 mb-4">Update Produksi</h2>
@@ -153,11 +154,10 @@
 
                 <div class="mb-5">
                     <label class="block text-sm font-medium text-stone-700 mb-1.5">Status Pesanan</label>
-                    <select name="status" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
+                    <select name="status" x-model="selectedStatus" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
                         @foreach($statusOptions as $value => $label)
                             @if(in_array($value, ['queue', 'processing', 'delayed', 'completed']))
                                 @php
-                                    // LOGIKA DISABLE DROPDOWN STATUS
                                     $isDisabled = false;
                                     if ($value === $pesanan->status) {
                                         $isDisabled = true;
@@ -173,9 +173,20 @@
                     </select>
                 </div>
 
+                {{-- INPUT TANGGAL MULAI PRODUKSI (Muncul jika Diproses/Tertunda/Selesai) --}}
+                <div x-show="selectedStatus === 'processing' || selectedStatus === 'delayed' || selectedStatus === 'completed'" class="mb-4">
+                    <label class="block text-sm font-medium text-stone-700 mb-1.5">Tanggal Mulai Produksi</label>
+                    <input type="date" name="tanggal_diproses" value="{{ old('tanggal_diproses', $pesanan->tanggal_diproses ? $pesanan->tanggal_diproses->format('Y-m-d') : '') }}" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
+                </div>
+
+                {{-- INPUT TANGGAL SELESAI PRODUKSI (Muncul jika Selesai) --}}
+                <div x-show="selectedStatus === 'completed'" class="mb-4">
+                    <label class="block text-sm font-medium text-stone-700 mb-1.5">Tanggal Selesai Produksi</label>
+                    <input type="date" name="tanggal_selesai" value="{{ old('tanggal_selesai', $pesanan->tanggal_selesai ? $pesanan->tanggal_selesai->format('Y-m-d') : '') }}" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
+                </div>
+
                 {{-- TAMBAHAN UNTUK REVISI 6: 4 CHECKBOX QC --}}
                 @php
-                    // QC hanya bisa dicentang jika status saat ini adalah "Diproses"
                     $qcDisabled = ($pesanan->status !== 'processing');
                 @endphp
                 <div class="mb-5">
@@ -248,6 +259,18 @@
                 <p class="text-sm text-gray-600">Status pesanan sudah <span class="font-semibold">Selesai Produksi</span>. Menunggu CIO Marketing untuk mengubah status menjadi Diterima Pelanggan.</p>
             </div>
             
+            {{-- TAMPILKAN TANGGAL PRODUKSI SAAT SUDAH SELESAI --}}
+            <div class="mt-4 mb-4 grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-xs text-stone-400">Tgl Mulai Produksi</p>
+                    <p class="text-sm font-medium text-stone-900">{{ $pesanan->tanggal_diproses ? $pesanan->tanggal_diproses->format('d M Y') : '-' }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-stone-400">Tgl Selesai Produksi</p>
+                    <p class="text-sm font-medium text-stone-900">{{ $pesanan->tanggal_selesai ? $pesanan->tanggal_selesai->format('d M Y') : '-' }}</p>
+                </div>
+            </div>
+
             {{-- TAMPILKAN QC SAAT SUDAH SELESAI (READ ONLY) --}}
             <div class="mt-4">
                 <label class="block text-sm font-medium text-stone-700 mb-2">Quality Control (QC) Result</label>
