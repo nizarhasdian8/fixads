@@ -22,7 +22,7 @@ class PesananController extends Controller
         $tahun = $request->input('tahun', now()->year);
 
         $pesanan = Pesanan::query()
-            ->with('produk')
+            ->with(['produk', 'teknisi']) // <-- UBAH 1: Tambahkan 'teknisi' di sini
             ->when($request->search, function ($query, $search) {
                 $query->where('nama_customer', 'like', "%{$search}%")
                     ->orWhere('nomor_invoice', 'like', "%{$search}%");
@@ -176,7 +176,42 @@ class PesananController extends Controller
             if ($currentStatus !== 'completed') {
                 return back()->with('error', 'Pesanan harus berstatus Selesai Produksi terlebih dahulu.');
             }
-            
+
+            // CEK STATUS PEMBAYARAN PELUNASAN
+            if ($pesanan->status_pembayaran === 'DP') {
+                $dataPelunasan = $request->validate([
+                    'nominal_pelunasan' => ['required', 'numeric', 'min:1'],
+                    'bukti_pelunasan' => ['required', 'image', 'max:2048'],
+                ], [
+                    'nominal_pelunasan.required' => 'Nominal pelunasan wajib diisi karena status pembayaran masih DP.',
+                    'bukti_pelunasan.required' => 'Bukti pembayaran pelunasan wajib diupload.',
+                    'bukti_pelunasan.image' => 'File bukti pelunasan harus berupa gambar.',
+                    'bukti_pelunasan.max' => 'Ukuran file bukti pelunasan maksimal 2MB.',
+                ]);
+
+                // Upload bukti pelunasan
+                $filePathPelunasan = null;
+                if ($request->hasFile('bukti_pelunasan')) {
+                    $filePelunasan = $request->file('bukti_pelunasan');
+                    $filenamePelunasan = $filePelunasan->hashName();
+                    $filePelunasan->move(public_path('kwitansi-pelunasan'), $filenamePelunasan);
+                    $filePathPelunasan = 'kwitansi-pelunasan/' . $filenamePelunasan;
+                }
+
+                // Hitung total nominal baru (DP + Pelunasan)
+                $totalNominalBaru = $pesanan->nominal_pembayaran + $dataPelunasan['nominal_pelunasan'];
+
+                $pesanan->update([
+                    'status' => 'diterima',
+                    'status_pembayaran' => 'Lunas',
+                    'nominal_pembayaran' => $totalNominalBaru,
+                    'bukti_pelunasan' => $filePathPelunasan,
+                ]);
+
+                return redirect()->route('pesanan.show', $pesanan)->with('success', 'Pelunasan berhasil dicatat dan status pesanan diubah menjadi Diterima Pelanggan.');
+            }
+
+            // Jika sudah LUNAS dari awal
             $pesanan->update(['status' => 'diterima']);
             return redirect()->route('pesanan.show', $pesanan)->with('success', 'Status pesanan berhasil diubah menjadi Diterima Pelanggan.');
         }
@@ -376,7 +411,7 @@ class PesananController extends Controller
         ];
 
         $pesanan = Pesanan::query()
-            ->with('produk')
+            ->with(['produk', 'teknisi']) // <-- UBAH 2: Tambahkan 'teknisi' di sini
             ->when($search, function ($query, $search) {
                 $query->where('nama_customer', 'like', "%{$search}%")
                     ->orWhere('nomor_invoice', 'like', "%{$search}%");
