@@ -264,37 +264,42 @@ class PesananController extends Controller
             return back()->with('error', 'Harap isi minimal 1 bahan baku yang dipakai sebelum mengubah status menjadi Selesai Produksi.')->withInput();
         }
 
-        // 1. CEK STOK SEBELUM MENYIMPAN
-        $stokKurang = false;
-        $namaBahanKurang = '';
-        
-        foreach ($barisBahan as $baris) {
-            $bahanBaku = BahanBaku::find($baris['bahan_baku_id']);
-            if ($bahanBaku && $bahanBaku->stok < $baris['jumlah_pakai']) {
-                $stokKurang = true;
-                $namaBahanKurang = $bahanBaku->nama;
-                break; 
+        // CEK APAKAH STOK SUDAH PERNAH DIPOTONG SEBELUMNYA (MENCEGAH PENGURANGAN STOK DOBEL)
+        $isFirstTimeDeducting = $pesanan->pemakaianBahan()->doesntExist();
+
+        if ($isFirstTimeDeducting) {
+            // 1. CEK STOK SEBELUM MENYIMPAN (HANYA SAAT PERTAMA KALI UBAH KE DIPROSES)
+            $stokKurang = false;
+            $namaBahanKurang = '';
+            
+            foreach ($barisBahan as $baris) {
+                $bahanBaku = BahanBaku::find($baris['bahan_baku_id']);
+                if ($bahanBaku && $bahanBaku->stok < $baris['jumlah_pakai']) {
+                    $stokKurang = true;
+                    $namaBahanKurang = $bahanBaku->nama;
+                    break; 
+                }
+            }
+
+            // 2. JIKA STOK KURANG, UBAH STATUS JADI TERTUNDA & KASIH PESAN ERROR
+            if ($stokKurang) {
+                $pesanan->update([
+                    'teknisi_id' => $data['teknisi_id'],
+                    'tanggal_diproses' => $data['tanggal_diproses'] ?? null,
+                    'tanggal_selesai' => $data['tanggal_selesai'] ?? null,
+                    'qc_desain' => $data['qc_desain'], 
+                    'qc_konstruksi' => $data['qc_konstruksi'], 
+                    'qc_kelistrikan' => $data['qc_kelistrikan'], 
+                    'qc_ketahanan' => $data['qc_ketahanan'], 
+                    'status' => 'delayed',
+                ]);
+
+                return back()->with('error', "Bahan baku kurang! Stok {$namaBahanKurang} tidak mencukupi.")->withInput();
             }
         }
 
-        // 2. JIKA STOK KURANG, UBAH STATUS JADI TERTUNDA & KASIH PESAN ERROR
-        if ($stokKurang) {
-            $pesanan->update([
-                'teknisi_id' => $data['teknisi_id'],
-                'tanggal_diproses' => $data['tanggal_diproses'] ?? null,
-                'tanggal_selesai' => $data['tanggal_selesai'] ?? null,
-                'qc_desain' => $data['qc_desain'], 
-                'qc_konstruksi' => $data['qc_konstruksi'], 
-                'qc_kelistrikan' => $data['qc_kelistrikan'], 
-                'qc_ketahanan' => $data['qc_ketahanan'], 
-                'status' => 'delayed',
-            ]);
-
-            return back()->with('error', "Bahan baku kurang! Stok {$namaBahanKurang} tidak mencukupi.")->withInput();
-        }
-
-        // 3. JIKA STOK AMAN, PROSES UPDATE STATUS & KURANGI STOK
-        DB::transaction(function () use ($data, $pesanan, $barisBahan) {
+        // 3. JIKA STOK AMAN (ATAU SUDAH PERNAH DIPOTONG), PROSES UPDATE STATUS
+        DB::transaction(function () use ($data, $pesanan, $barisBahan, $isFirstTimeDeducting) {
             $pesanan->update([
                 'teknisi_id' => $data['teknisi_id'],
                 'tanggal_diproses' => $data['tanggal_diproses'] ?? null,
@@ -306,19 +311,22 @@ class PesananController extends Controller
                 'status' => $data['status'],
             ]);
 
-            foreach ($barisBahan as $baris) {
-                $bahanBaku = BahanBaku::lockForUpdate()->find($baris['bahan_baku_id']);
+            // KURANGI STOK HANYA JIKA INI PERTAMA KALINYA DIPROSES
+            if ($isFirstTimeDeducting) {
+                foreach ($barisBahan as $baris) {
+                    $bahanBaku = BahanBaku::lockForUpdate()->find($baris['bahan_baku_id']);
 
-                if (! $bahanBaku) {
-                    continue;
+                    if (! $bahanBaku) {
+                        continue;
+                    }
+
+                    $pesanan->pemakaianBahan()->create([
+                        'bahan_baku_id' => $bahanBaku->id,
+                        'jumlah_pakai' => $baris['jumlah_pakai'],
+                    ]);
+
+                    $bahanBaku->decrement('stok', $baris['jumlah_pakai']);
                 }
-
-                $pesanan->pemakaianBahan()->create([
-                    'bahan_baku_id' => $bahanBaku->id,
-                    'jumlah_pakai' => $baris['jumlah_pakai'],
-                ]);
-
-                $bahanBaku->decrement('stok', $baris['jumlah_pakai']);
             }
         });
 

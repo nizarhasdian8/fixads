@@ -137,8 +137,71 @@
             @php
                 // Cek apakah status yang tersimpan di DB saat ini adalah Diproses atau Tertunda
                 $isCurrentlyProcessing = in_array($pesanan->status, ['processing', 'delayed']);
+                
+                // === LOGIKA AUTO-FILL BAHAN BAKU ===
+                $ukuranParts = explode(' x ', $pesanan->ukuran);
+                $p = floatval($ukuranParts[0] ?? 0);
+                $l = floatval($ukuranParts[1] ?? 0);
+                $j = floatval($pesanan->jumlah);
+
+                $autoBahan = [];
+                if ($p > 0 && $l > 0) {
+                    $luas = ($p * $l) / 10000; // konversi cm2 ke m2
+                    $keliling = (2 * ($p + $l)) / 100; // konversi cm ke m
+
+                    $produkNama = strtolower($pesanan->produk->nama_produk);
+
+                    // Cari ID bahan berdasarkan nama persis di database
+                    $findBahanId = function($nama) use ($bahanBakuList) {
+                        $bahan = $bahanBakuList->first(function($b) use ($nama) {
+                            return strtolower($b->nama) === strtolower($nama);
+                        });
+                        return $bahan ? (string)$bahan->id : null;
+                    };
+
+                    // RUMUS OTOMATIS PER PRODUK
+                    if (str_contains($produkNama, 'neon box')) {
+                        if ($id = $findBahanId('Acrylic 3mm')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($luas / 3 * $j))];
+                        if ($id = $findBahanId('Neon Flex LED')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j))];
+                        if ($id = $findBahanId('Power Supply')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j / 3))];
+                        if ($id = $findBahanId('Kabel Listrik')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, $j)];
+                    } elseif (str_contains($produkNama, 'neon flex')) {
+                        if ($id = $findBahanId('Neon Flex LED')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j))];
+                        if ($id = $findBahanId('Power Supply')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j / 3))];
+                        if ($id = $findBahanId('Kabel Listrik')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, $j)];
+                    } elseif (str_contains($produkNama, 'running text')) {
+                        if ($id = $findBahanId('Rangka Aluminium')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j))];
+                        $ledMod = ceil($luas * 20) * $j;
+                        if ($id = $findBahanId('LED Module')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, $ledMod)];
+                        if ($id = $findBahanId('Power Supply')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($ledMod / 50))];
+                        if ($id = $findBahanId('Kabel Listrik')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, $j)];
+                    } elseif (str_contains($produkNama, 'slimbox')) {
+                        if ($id = $findBahanId('Acrylic 3mm')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($luas / 3 * $j))];
+                        if ($id = $findBahanId('Rangka Aluminium')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($keliling * $j))];
+                        $ledMod = ceil($luas * 100) * $j;
+                        if ($id = $findBahanId('LED Module')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, $ledMod)];
+                        if ($id = $findBahanId('Power Supply')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($ledMod / 50))];
+                    } elseif (str_contains($produkNama, 'backlight')) {
+                        if ($id = $findBahanId('Acrylic 3mm')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($luas / 3 * $j))];
+                        $ledMod = ceil($luas * 100) * $j;
+                        if ($id = $findBahanId('LED Module')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, $ledMod)];
+                        if ($id = $findBahanId('Power Supply')) $autoBahan[] = ['bahan_baku_id' => $id, 'jumlah_pakai' => (string)max(1, ceil($ledMod / 50))];
+                    }
+                }
+
+                // Tentukan data baris awal untuk AlpineJS
+                if (old('bahan')) {
+                    $initialRows = old('bahan');
+                } elseif ($pesanan->pemakaianBahan->isNotEmpty()) {
+                    // Jika sudah pernah disimpan (misal pas ubah dari Diproses ke Selesai), ambil dari DB
+                    $initialRows = $pesanan->pemakaianBahan->map(fn($pb) => ['bahan_baku_id' => (string)$pb->bahan_baku_id, 'jumlah_pakai' => (string)$pb->jumlah_pakai])->toArray();
+                } elseif (count($autoBahan) > 0) {
+                    $initialRows = $autoBahan;
+                } else {
+                    $initialRows = [['bahan_baku_id' => '', 'jumlah_pakai' => '']];
+                }
             @endphp
-            <form method="POST" action="{{ route('pesanan.update-status', $pesanan) }}" x-data="{ rows: [{ bahan_baku_id: '', jumlah_pakai: '' }], selectedStatus: '{{ old('status', $pesanan->status) }}', isProcessing: {{ json_encode($isCurrentlyProcessing) }} }">
+            <form method="POST" action="{{ route('pesanan.update-status', $pesanan) }}" x-data="{ rows: {{ json_encode($initialRows) }}, selectedStatus: '{{ old('status', $pesanan->status) }}', isProcessing: {{ json_encode($isCurrentlyProcessing) }} }">
                 @csrf
                 @method('PUT')
                 <h2 class="font-semibold text-stone-900 mb-4">Update Produksi</h2>
@@ -220,7 +283,7 @@
                 <div class="mb-2 flex items-center justify-between">
                     <label class="block text-sm font-medium text-stone-700">Pemakaian Bahan Baku</label>
                 </div>
-                <p class="text-xs text-stone-400 mb-3">Isi bahan baku yang dipakai untuk pesanan ini. Stok akan berkurang otomatis setelah disimpan.</p>
+                <p class="text-xs text-stone-400 mb-3">Bahan baku terisi otomatis berdasarkan perhitungan standar. Jumlah bisa diedit sesuai kebutuhan lapangan.</p>
 
                 @error('bahan') <p class="text-xs text-red-600 mb-3">{{ $message }}</p> @enderror
 
