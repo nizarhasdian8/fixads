@@ -134,13 +134,12 @@
         {{-- 1. FORM UBAH STATUS (HANYA CIO PRODUCTION & STATUS MASIH PRODUKSI) --}}
         @if(auth()->user()->isProduction() && in_array($pesanan->status, ['queue', 'processing', 'delayed']))
         <div class="bg-white border border-stone-200 rounded-2xl p-6">
-            {{-- TAMBAHKAN selectedStatus di x-data --}}
             <form method="POST" action="{{ route('pesanan.update-status', $pesanan) }}" x-data="{ rows: [{ bahan_baku_id: '', jumlah_pakai: '' }], selectedStatus: '{{ $pesanan->status }}' }">
                 @csrf
                 @method('PUT')
                 <h2 class="font-semibold text-stone-900 mb-4">Update Produksi</h2>
 
-                {{-- UBAH INPUT KODE TEKNISI MENJADI DROPDOWN NAMA TEKNISI --}}
+                {{-- DROPDOWN NAMA TEKNISI --}}
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-stone-700 mb-1.5">Nama Teknisi</label>
                     <select name="teknisi_id" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition @error('teknisi_id') border-red-400 @enderror">
@@ -173,40 +172,60 @@
                     </select>
                 </div>
 
-                {{-- INPUT TANGGAL MULAI PRODUKSI (Muncul jika Diproses/Tertunda/Selesai) --}}
+                {{-- INPUT TANGGAL MULAI PRODUKSI --}}
                 <div x-show="selectedStatus === 'processing' || selectedStatus === 'delayed' || selectedStatus === 'completed'" class="mb-4">
                     <label class="block text-sm font-medium text-stone-700 mb-1.5">Tanggal Mulai Produksi</label>
                     <input type="date" name="tanggal_diproses" value="{{ old('tanggal_diproses', $pesanan->tanggal_diproses ? $pesanan->tanggal_diproses->format('Y-m-d') : '') }}" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
                 </div>
 
-                {{-- INPUT TANGGAL SELESAI PRODUKSI (Muncul jika Selesai) --}}
+                {{-- INPUT TANGGAL SELESAI PRODUKSI --}}
                 <div x-show="selectedStatus === 'completed'" class="mb-4">
                     <label class="block text-sm font-medium text-stone-700 mb-1.5">Tanggal Selesai Produksi</label>
                     <input type="date" name="tanggal_selesai" value="{{ old('tanggal_selesai', $pesanan->tanggal_selesai ? $pesanan->tanggal_selesai->format('Y-m-d') : '') }}" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
                 </div>
 
-                {{-- TAMBAHAN UNTUK REVISI 6: 4 CHECKBOX QC --}}
-                @php
-                    $qcDisabled = ($pesanan->status !== 'processing');
-                @endphp
-                <div class="mb-5">
+                {{-- 4 CHECKBOX QC (HANYA MUNCUL SAAT DIPROSES) --}}
+                <div x-show="selectedStatus === 'processing'" class="mb-5">
                     <label class="block text-sm font-medium text-stone-700 mb-2">Quality Control (QC)</label>
                     <div class="space-y-2">
                         <div class="flex items-center gap-2">
-                            <input type="checkbox" name="qc_desain" id="qc_desain" value="1" class="rounded border-stone-300 text-brand-600 focus:ring-brand-500" @checked(old('qc_desain', $pesanan->qc_desain)) @disabled($qcDisabled)>
+                            <input type="checkbox" name="qc_desain" id="qc_desain" value="1" class="rounded border-stone-300 text-brand-600 focus:ring-brand-500" @checked(old('qc_desain', $pesanan->qc_desain))>
                             <label for="qc_desain" class="text-sm text-stone-700">QC Desain & Ukuran</label>
                         </div>
                         <div class="flex items-center gap-2">
-                            <input type="checkbox" name="qc_konstruksi" id="qc_konstruksi" value="1" class="rounded border-stone-300 text-brand-600 focus:ring-brand-500" @checked(old('qc_konstruksi', $pesanan->qc_konstruksi)) @disabled($qcDisabled)>
+                            <input type="checkbox" name="qc_konstruksi" id="qc_konstruksi" value="1" class="rounded border-stone-300 text-brand-600 focus:ring-brand-500" @checked(old('qc_konstruksi', $pesanan->qc_konstruksi))>
                             <label for="qc_konstruksi" class="text-sm text-stone-700">QC Pengerjaan/Konstruksi</label>
                         </div>
                         <div class="flex items-center gap-2">
-                            <input type="checkbox" name="qc_kelistrikan" id="qc_kelistrikan" value="1" class="rounded border-stone-300 text-brand-600 focus:ring-brand-500" @checked(old('qc_kelistrikan', $pesanan->qc_kelistrikan)) @disabled($qcDisabled)>
+                            <input type="checkbox" name="qc_kelistrikan" id="qc_kelistrikan" value="1" class="rounded border-stone-300 text-brand-600 focus:ring-brand-500" @checked(old('qc_kelistrikan', $pesanan->qc_kelistrikan))>
                             <label for="qc_kelistrikan" class="text-sm text-stone-700">QC Kelistrikan</label>
                         </div>
                         <div class="flex items-center gap-2">
-                            <input type="checkbox" name="qc_ketahanan" id="qc_ketahanan" value="1" class="rounded border-stone-300 text-brand-600 focus:ring-brand-500" @checked(old('qc_ketahanan', $pesanan->qc_ketahanan)) @disabled($qcDisabled)>
+                            <input type="checkbox" name="qc_ketahanan" id="qc_ketahanan" value="1" class="rounded border-stone-300 text-brand-600 focus:ring-brand-500" @checked(old('qc_ketahanan', $pesanan->qc_ketahanan))>
                             <label for="qc_ketahanan" class="text-sm text-stone-700">QC Ketahanan/Outdoor</label>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- JIKA SUDAH SELESAI (COMPLETED), TAMPILKAN QC SEBAGAI READ-ONLY --}}
+                <div x-show="selectedStatus === 'completed'" class="mb-5">
+                    <label class="block text-sm font-medium text-stone-700 mb-2">Quality Control (QC) Result</label>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" disabled @checked($pesanan->qc_desain) class="rounded border-stone-300 text-brand-600">
+                            <span class="text-sm text-stone-700">QC Desain & Ukuran</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" disabled @checked($pesanan->qc_konstruksi) class="rounded border-stone-300 text-brand-600">
+                            <span class="text-sm text-stone-700">QC Pengerjaan/Konstruksi</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" disabled @checked($pesanan->qc_kelistrikan) class="rounded border-stone-300 text-brand-600">
+                            <span class="text-sm text-stone-700">QC Kelistrikan</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" disabled @checked($pesanan->qc_ketahanan) class="rounded border-stone-300 text-brand-600">
+                            <span class="text-sm text-stone-700">QC Ketahanan/Outdoor</span>
                         </div>
                     </div>
                 </div>
