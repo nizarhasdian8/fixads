@@ -60,9 +60,9 @@
                         $tebal = $ukuranParts[2] ?? '-';
                     @endphp
                     <dd class="text-stone-900 font-medium mt-0.5 flex flex-col gap-0.5">
-                        <span>Panjang : {{ $panjang }}</span>
-                        <span>Lebar : {{ $lebar }}</span>
-                        <span>Tebal : {{ $tebal }}</span>
+                        <span>Panjang : {{ $panjang !== '-' ? $panjang . ' cm' : '-' }}</span>
+                        <span>Lebar : {{ $lebar !== '-' ? $lebar . ' cm' : '-' }}</span>
+                        <span>Tebal : {{ $tebal !== '-' ? $tebal . ' cm' : '-' }}</span>
                     </dd>
                 </div>
                 <div>
