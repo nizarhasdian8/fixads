@@ -24,12 +24,14 @@ class Pesanan extends Model
         'deadline',
         'catatan',
         'status',
+        'tanggal_diproses', // TAMBAHAN REVISI TANGGAL
+        'tanggal_selesai', // TAMBAHAN REVISI TANGGAL
         'kode_teknisi',
         'teknisi_id', 
-        'qc_desain', // TAMBAHAN QC BARU
-        'qc_konstruksi', // TAMBAHAN QC BARU
-        'qc_kelistrikan', // TAMBAHAN QC BARU
-        'qc_ketahanan', // TAMBAHAN QC BARU
+        'qc_desain', 
+        'qc_konstruksi', 
+        'qc_kelistrikan', 
+        'qc_ketahanan', 
         'created_by',
         'status_pembayaran', 
         'bukti_pembayaran',
@@ -40,12 +42,14 @@ class Pesanan extends Model
     {
         return [
             'deadline' => 'date',
+            'tanggal_diproses' => 'date', // TAMBAHAN REVISI TANGGAL
+            'tanggal_selesai' => 'date', // TAMBAHAN REVISI TANGGAL
             'harga' => 'decimal:2',
             'nominal_pembayaran' => 'decimal:2',
-            'qc_desain' => 'boolean', // TAMBAHAN QC BARU
-            'qc_konstruksi' => 'boolean', // TAMBAHAN QC BARU
-            'qc_kelistrikan' => 'boolean', // TAMBAHAN QC BARU
-            'qc_ketahanan' => 'boolean', // TAMBAHAN QC BARU
+            'qc_desain' => 'boolean', 
+            'qc_konstruksi' => 'boolean', 
+            'qc_kelistrikan' => 'boolean', 
+            'qc_ketahanan' => 'boolean', 
         ];
     }
 
@@ -59,7 +63,6 @@ class Pesanan extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    // TAMBAHAN UNTUK REVISI 4: Relasi ke Teknisi
     public function teknisi(): BelongsTo
     {
         return $this->belongsTo(Teknisi::class, 'teknisi_id');
