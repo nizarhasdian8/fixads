@@ -12,7 +12,22 @@
     <p class="text-stone-500 text-sm mt-1">Nomor invoice akan dibuat otomatis setelah pesanan disimpan.</p>
 </div>
 
-<form method="POST" action="{{ route('pesanan.store') }}" enctype="multipart/form-data" class="max-w-3xl">
+{{-- TAMBAHKAN x-data DI FORM INI UNTUK JAVASCRIPT OTOMATIS --}}
+<form method="POST" action="{{ route('pesanan.store') }}" enctype="multipart/form-data" class="max-w-3xl" x-data="{
+    harga: '{{ old('harga', 0) }}',
+    status: '{{ old('status_pembayaran', '') }}',
+    nominal: '{{ old('nominal_pembayaran', 0) }}',
+    updateNominal() {
+        let h = parseFloat(this.harga) || 0;
+        if (this.status === 'Lunas') {
+            this.nominal = h;
+        } else if (this.status === 'DP') {
+            this.nominal = Math.round(h / 2);
+        } else {
+            this.nominal = 0;
+        }
+    }
+}">
     @csrf
 
     <div class="bg-white border border-stone-200 rounded-2xl p-6 space-y-5">
@@ -95,9 +110,11 @@
                     class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition @error('jumlah') border-red-400 @enderror">
                 @error('jumlah') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
             </div>
+            
+            {{-- INPUT HARGA DENGAN x-model --}}
             <div>
                 <label class="block text-sm font-medium text-stone-700 mb-1.5">Harga (Rp)</label>
-                <input type="number" name="harga" value="{{ old('harga') }}" min="0" step="1000" placeholder="0"
+                <input type="number" name="harga" x-model="harga" @input="updateNominal()" min="0" step="1000" placeholder="0"
                     class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition @error('harga') border-red-400 @enderror">
                 @error('harga') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
             </div>
@@ -131,7 +148,7 @@
         <div class="grid sm:grid-cols-2 gap-5">
             <div>
                 <label class="block text-sm font-medium text-stone-700 mb-1.5">Status Pembayaran</label>
-                <select name="status_pembayaran"
+                <select name="status_pembayaran" x-model="status" @change="updateNominal()"
                     class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition @error('status_pembayaran') border-red-400 @enderror">
                     <option value="" disabled selected>Pilih status pembayaran</option>
                     @foreach(['DP', 'Lunas'] as $status)
@@ -141,10 +158,10 @@
                 @error('status_pembayaran') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
             </div>
             
-            {{-- TAMBAHAN INPUTAN NOMINAL PEMBAYARAN --}}
+            {{-- INPUT NOMINAL DENGAN x-model --}}
             <div>
                 <label class="block text-sm font-medium text-stone-700 mb-1.5">Nominal Pembayaran (Rp)</label>
-                <input type="number" name="nominal_pembayaran" value="{{ old('nominal_pembayaran', 0) }}" min="0" step="1000" placeholder="0"
+                <input type="number" name="nominal_pembayaran" x-model="nominal" min="0" step="1000" placeholder="0"
                     class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition @error('nominal_pembayaran') border-red-400 @enderror">
                 @error('nominal_pembayaran') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
             </div>

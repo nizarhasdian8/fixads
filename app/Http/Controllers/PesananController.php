@@ -22,7 +22,7 @@ class PesananController extends Controller
         $tahun = $request->input('tahun', now()->year);
 
         $pesanan = Pesanan::query()
-            ->with(['produk', 'teknisi']) // <-- UBAH 1: Tambahkan 'teknisi' di sini
+            ->with(['produk', 'teknisi'])
             ->when($request->search, function ($query, $search) {
                 $query->where('nama_customer', 'like', "%{$search}%")
                     ->orWhere('nomor_invoice', 'like', "%{$search}%");
@@ -88,7 +88,16 @@ class PesananController extends Controller
             'catatan' => ['nullable', 'string'],
             'status_pembayaran' => ['required', 'in:DP,Lunas'],  
             'bukti_pembayaran' => ['required', 'image', 'max:2048'], 
-            'nominal_pembayaran' => ['nullable', 'numeric', 'min:0'],
+            'nominal_pembayaran' => ['required', 'numeric', 'min:0', function ($attribute, $value, $fail) use ($request) {
+                // Validasi batas minimal DP 50%
+                if ($request->status_pembayaran === 'DP' && $value < ($request->harga / 2)) {
+                    $fail('Nominal DP minimal harus 50% dari total harga.');
+                }
+                // Validasi Lunas harus sesuai harga
+                if ($request->status_pembayaran === 'Lunas' && $value < $request->harga) {
+                    $fail('Nominal Lunas harus sama dengan total harga.');
+                }
+            }],
         ], [
             'nomor_hp.required' => 'Harap isi dengan benar.',
             'nomor_hp.min' => 'Harap isi dengan benar.',
@@ -136,10 +145,6 @@ class PesananController extends Controller
             $filename = $file->hashName();
             $file->move(public_path('desain-pesanan'), $filename);
             $data['file_desain'] = 'desain-pesanan/' . $filename;
-        }
-
-        if ($data['status_pembayaran'] === 'Belum Lunas') {
-            $data['nominal_pembayaran'] = 0;
         }
 
         $data['nomor_invoice'] = $this->generateNomorInvoice();
@@ -227,13 +232,11 @@ class PesananController extends Controller
 
         // === ATURAN VALIDASI DINAMIS UNTUK TANGGAL ===
         $rulesTanggalDiproses = ['nullable', 'date'];
-        // Wajib isi Tanggal Mulai Produksi HANYA jika status lama Antrian dan mau ubah ke Diproses/Tertunda
         if ($currentStatus === 'queue' && in_array($newStatus, ['processing', 'delayed'])) {
             $rulesTanggalDiproses = ['required', 'date'];
         }
 
         $rulesTanggalSelesai = ['nullable', 'date'];
-        // Wajib isi Tanggal Selesai Produksi JIKA status baru adalah Selesai (completed)
         if ($newStatus === 'completed') {
             $rulesTanggalSelesai = ['required', 'date'];
         }
@@ -257,53 +260,40 @@ class PesananController extends Controller
             'tanggal_selesai.required' => 'Tanggal Selesai Produksi wajib diisi.',
         ]);
 
-        // KUNCI TEKNISI & TANGGAL PRODUKSI: Jika status pesanan LAMA sudah "Diproses" (atau selanjutnya), 
-        // maka data teknisi & tanggal diproses TIDAK BISA DIRUBAH, wajib pakai data dari database.
         if (in_array($currentStatus, ['processing', 'delayed', 'completed'])) {
             $data['teknisi_id'] = $pesanan->teknisi_id;
             $data['tanggal_diproses'] = $pesanan->tanggal_diproses ? $pesanan->tanggal_diproses->format('Y-m-d') : null;
         } else {
-            // Jika status pesanan LAMA masih "Antrian" (queue), boleh ambil dari inputan form
             if (empty($data['teknisi_id'])) {
                 $data['teknisi_id'] = $pesanan->teknisi_id;
             }
-            // Validasi tambahan: Jika teknisi masih kosong dan status baru diproses/delayed/selesai, tolak
             if (in_array($newStatus, ['processing', 'delayed', 'completed']) && empty($data['teknisi_id'])) {
                  return back()->with('error', 'Harap pilih teknisi terlebih dahulu.')->withInput();
             }
-
-            // Jika tanggal_diproses tidak dikirim, gunakan yang lama dari database
             if (empty($data['tanggal_diproses'])) {
                 $data['tanggal_diproses'] = $pesanan->tanggal_diproses ? $pesanan->tanggal_diproses->format('Y-m-d') : null;
             }
         }
 
-        // Konversi 4 checkbox QC ke boolean (true/false)
         $data['qc_desain'] = $request->boolean('qc_desain');
         $data['qc_konstruksi'] = $request->boolean('qc_konstruksi');
         $data['qc_kelistrikan'] = $request->boolean('qc_kelistrikan');
         $data['qc_ketahanan'] = $request->boolean('qc_ketahanan');
 
-        // CEK QC: Jika ingin ubah ke "Selesai Produksi", ke-4 QC wajib dicentang semua
         if ($newStatus === 'completed' && (!$data['qc_desain'] || !$data['qc_konstruksi'] || !$data['qc_kelistrikan'] || !$data['qc_ketahanan'])) {
-            // UBAH: Kirim error ke bagian 'qc_error' agar bisa ditangkap di bawah checkbox
             return back()->withErrors(['qc_error' => 'harap lakukan pengecekkan QC'])->withInput();
         }
 
         $barisBahan = collect($data['bahan'] ?? [])
             ->filter(fn ($baris) => ! empty($baris['bahan_baku_id']) && ! empty($baris['jumlah_pakai']));
 
-        // CEK BAHAN BAKU: Jika ingin ubah ke "Selesai Produksi", wajib ada bahan baku
-        // Cek jika form kosong, apakah di database juga kosong?
         if ($newStatus === 'completed' && $barisBahan->isEmpty() && $pesanan->pemakaianBahan()->exists() === false) {
             return back()->with('error', 'Harap isi minimal 1 bahan baku yang dipakai sebelum mengubah status menjadi Selesai Produksi.')->withInput();
         }
 
-        // CEK APAKAH STOK SUDAH PERNAH DIPOTONG SEBELUMNYA (MENCEGAH PENGURANGAN STOK DOBEL)
         $isFirstTimeDeducting = $pesanan->pemakaianBahan()->doesntExist();
 
         if ($isFirstTimeDeducting) {
-            // 1. CEK STOK SEBELUM MENYIMPAN (HANYA SAAT PERTAMA KALI UBAH KE DIPROSES)
             $stokKurang = false;
             $namaBahanKurang = '';
             
@@ -316,7 +306,6 @@ class PesananController extends Controller
                 }
             }
 
-            // 2. JIKA STOK KURANG, UBAH STATUS JADI TERTUNDA & KASIH PESAN ERROR
             if ($stokKurang) {
                 $pesanan->update([
                     'teknisi_id' => $data['teknisi_id'],
@@ -333,7 +322,6 @@ class PesananController extends Controller
             }
         }
 
-        // 3. JIKA STOK AMAN (ATAU SUDAH PERNAH DIPOTONG), PROSES UPDATE STATUS
         DB::transaction(function () use ($data, $pesanan, $barisBahan, $isFirstTimeDeducting) {
             $pesanan->update([
                 'teknisi_id' => $data['teknisi_id'],
@@ -346,7 +334,6 @@ class PesananController extends Controller
                 'status' => $data['status'],
             ]);
 
-            // KURANGI STOK HANYA JIKA INI PERTAMA KALINYA DIPROSES
             if ($isFirstTimeDeducting) {
                 foreach ($barisBahan as $baris) {
                     $bahanBaku = BahanBaku::lockForUpdate()->find($baris['bahan_baku_id']);
@@ -411,7 +398,7 @@ class PesananController extends Controller
         ];
 
         $pesanan = Pesanan::query()
-            ->with(['produk', 'teknisi']) // <-- UBAH 2: Tambahkan 'teknisi' di sini
+            ->with(['produk', 'teknisi'])
             ->when($search, function ($query, $search) {
                 $query->where('nama_customer', 'like', "%{$search}%")
                     ->orWhere('nomor_invoice', 'like', "%{$search}%");
