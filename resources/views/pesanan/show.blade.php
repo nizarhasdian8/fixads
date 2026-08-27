@@ -69,10 +69,12 @@
                     <dt class="text-stone-400">Jumlah</dt>
                     <dd class="text-stone-900 font-medium mt-0.5">{{ $pesanan->jumlah }} pcs</dd>
                 </div>
+                @if(auth()->user()->isMarketing())
                 <div>
                     <dt class="text-stone-400">Harga</dt>
                     <dd class="text-stone-900 font-medium mt-0.5">Rp {{ number_format($pesanan->harga, 0, ',', '.') }}</dd>
                 </div>
+                @endif
                 <div>
                     <dt class="text-stone-400">Teknisi</dt>
                     <dd class="text-stone-900 font-medium mt-0.5">{{ $pesanan->teknisi->nama ?? '—' }}</dd>
