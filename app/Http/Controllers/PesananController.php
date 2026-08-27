@@ -257,6 +257,11 @@ class PesananController extends Controller
         $barisBahan = collect($data['bahan'] ?? [])
             ->filter(fn ($baris) => ! empty($baris['bahan_baku_id']) && ! empty($baris['jumlah_pakai']));
 
+        // CEK BAHAN BAKU: Jika ingin ubah ke "Selesai Produksi", wajib mengisi minimal 1 bahan baku
+        if ($newStatus === 'completed' && $barisBahan->isEmpty()) {
+            return back()->with('error', 'Harap isi minimal 1 bahan baku yang dipakai sebelum mengubah status menjadi Selesai Produksi.')->withInput();
+        }
+
         // 1. CEK STOK SEBELUM MENYIMPAN
         $stokKurang = false;
         $namaBahanKurang = '';
