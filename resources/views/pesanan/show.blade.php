@@ -213,8 +213,11 @@
                 } else {
                     $initialRows = [['bahan_baku_id' => '', 'nama' => '', 'satuan' => '', 'jumlah_pakai' => '', 'is_saved' => false]];
                 }
+
+                // Jika statusnya delayed, kita set default dropdown-nya ke "processing" agar formnya aktif untuk dicoba lagi
+                $defaultDropdownStatus = old('status', $pesanan->status === 'delayed' ? 'processing' : $pesanan->status);
             @endphp
-            <form method="POST" action="{{ route('pesanan.update-status', $pesanan) }}" x-data="{ rows: {{ json_encode($initialRows) }}, bahanMap: {{ $bahanMap }}, selectedStatus: '{{ old('status', $pesanan->status) }}', isProcessing: {{ json_encode($isCurrentlyProcessing) }} }">
+            <form method="POST" action="{{ route('pesanan.update-status', $pesanan) }}" x-data="{ rows: {{ json_encode($initialRows) }}, bahanMap: {{ $bahanMap }}, selectedStatus: '{{ $defaultDropdownStatus }}', isProcessing: {{ json_encode($isCurrentlyProcessing) }} }">
                 @csrf
                 @method('PUT')
                 <h2 class="font-semibold text-stone-900 mb-4">Update Produksi</h2>
@@ -235,7 +238,11 @@
                     <label class="block text-sm font-medium text-stone-700 mb-1.5">Status Pesanan</label>
                     <select name="status" x-model="selectedStatus" class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition">
                         @foreach($statusOptions as $value => $label)
-                            @if(in_array($value, ['queue', 'processing', 'delayed', 'completed']))
+                            @php
+                                // Sembunyikan 'delayed' dari dropdown KECUALI jika status di DB saat ini sedang 'delayed'
+                                $isHidden = ($value === 'delayed' && $pesanan->status !== 'delayed');
+                            @endphp
+                            @if(!$isHidden)
                                 @php
                                     $isDisabled = false;
                                     if ($value === $pesanan->status) {
@@ -244,9 +251,12 @@
                                         $isDisabled = true;
                                     } elseif (in_array($pesanan->status, ['processing', 'delayed']) && $value === 'queue') {
                                         $isDisabled = true;
+                                    } elseif ($value === 'delayed') {
+                                        // Opsi 'Tertunda' tidak bisa dipilih manual, hanya muncul jika sistem yang mengubah
+                                        $isDisabled = true; 
                                     }
                                 @endphp
-                                <option value="{{ $value }}" @selected(old('status', $pesanan->status) === $value) @disabled($isDisabled)>{{ $label }}</option>
+                                <option value="{{ $value }}" @selected($defaultDropdownStatus === $value) @disabled($isDisabled)>{{ $label }}</option>
                             @endif
                         @endforeach
                     </select>
