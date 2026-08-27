@@ -86,7 +86,7 @@ class PesananController extends Controller
             'file_desain' => ['required', 'image', 'max:5120'],
             'deadline' => ['required', 'date', 'after_or_equal:today'],
             'catatan' => ['nullable', 'string'],
-            'status_pembayaran' => ['required', 'in:Belum Lunas,DP,Lunas'], 
+            'status_pembayaran' => ['required', 'in:DP,Lunas'],  
             'bukti_pembayaran' => ['required', 'image', 'max:2048'], 
             'nominal_pembayaran' => ['nullable', 'numeric', 'min:0'],
         ], [

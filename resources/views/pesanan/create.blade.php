@@ -134,7 +134,7 @@
                 <select name="status_pembayaran"
                     class="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition @error('status_pembayaran') border-red-400 @enderror">
                     <option value="" disabled selected>Pilih status pembayaran</option>
-                    @foreach(['Belum Lunas', 'DP', 'Lunas'] as $status)
+                    @foreach(['DP', 'Lunas'] as $status)
                         <option value="{{ $status }}" @selected(old('status_pembayaran') === $status)>{{ $status }}</option>
                     @endforeach
                 </select>
