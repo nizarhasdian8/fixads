@@ -36,7 +36,7 @@ class DashboardController extends Controller
                 
                 // Data lama yang masih dipakai di view
                 'totalPesanan' => Pesanan::count(),
-                'pesananTerbaru' => Pesanan::with('produk')
+                'pesananTerbaru' => Pesanan::with(['produk', 'teknisi'])
                     ->whereDate('created_at', today())
                     ->latest()
                     ->take(5)
@@ -58,7 +58,7 @@ class DashboardController extends Controller
             // Data lama yang masih dipakai di view
             'totalPermintaan' => PermintaanBahan::count(),
             'bahanHampirHabis' => BahanBaku::whereColumn('stok', '<=', 'stok_minimum')->get(),
-            'pesananAntrian' => Pesanan::with('produk')
+            'pesananAntrian' => Pesanan::with(['produk', 'teknisi'])
                 ->whereIn('status', ['queue', 'delayed'])
                 ->latest()
                 ->take(5)

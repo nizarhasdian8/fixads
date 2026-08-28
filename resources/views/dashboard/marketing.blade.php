@@ -88,7 +88,7 @@
                     <td class="px-5 py-3.5 text-stone-600">{{ $item->produk->nama_produk }}</td>
                     <td class="px-5 py-3.5 text-stone-600">{{ $item->jumlah }}</td>
                     <td class="px-5 py-3.5 text-stone-600">{{ $item->deadline->format('d M Y') }}</td>
-                    <td class="px-5 py-3.5 text-stone-600">{{ $item->kode_teknisi ?? '—' }}</td>
+                    <td class="px-5 py-3.5 text-stone-600">{{ $item->teknisi->nama ?? '—' }}</td>
                     <td class="px-5 py-3.5">
                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ring-1 ring-inset {{ $item->statusBadgeClass() }}">{{ $item->statusLabel() }}</span>
                     </td>

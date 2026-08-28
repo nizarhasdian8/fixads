@@ -83,6 +83,7 @@
                 <div>
                     <p class="text-sm font-medium text-stone-900">{{ $item->nomor_invoice }}</p>
                     <p class="text-xs text-stone-400">{{ $item->produk->nama_produk }} &middot; {{ $item->nama_customer }}</p>
+                    <p class="text-xs text-stone-500 mt-0.5">Teknisi: <span class="font-medium text-stone-700">{{ $item->teknisi->nama ?? 'Belum dipilih' }}</span></p>
                 </div>
                 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ring-1 ring-inset {{ $item->statusBadgeClass() }}">{{ $item->statusLabel() }}</span>
             </div>
